@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>交易策略 Block Diagram - 套利期權計劃</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
@@ -19,6 +20,34 @@
             margin: 20px 0;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+                margin: 10px 0;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .subtitle {
+                font-size: 14px;
+            }
+            .diagram {
+                padding: 15px;
+                margin: 20px 0;
+            }
+            .mermaid {
+                padding: 10px;
+                overflow-x: auto;
+            }
+            .note-box, .risk-box, .advantage-box {
+                padding: 12px;
+                font-size: 14px;
+            }
         }
         h1 {
             color: #2c3e50;
