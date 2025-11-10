@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>交易策略 Block Diagram - 套利期權計劃</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .note-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .risk-box {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .advantage-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 交易策略 Block Diagram</h1>
+        <p class="subtitle">從投資到投機到套利：做空期權計劃</p>
+
+        <!-- 1. 思維演進階段 -->
+        <div class="diagram">
+            <h2>1. 思維演進階段 (Evolution Stages)</h2>
+            <div class="mermaid">
+graph LR
+    A[投資階段<br/>Investment] -->|進化| B[投機階段<br/>Speculation]
+    B -->|進化| C[套利階段<br/>Arbitrage<br/>當前階段]
+    
+    B1[買看漲期權<br/>Long Call Options] -.->|投機時期策略| B
+    C1[做空期權計劃<br/>Short Options Strategy] -.->|套利時期策略| C
+    
+    style A fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
+    style B fill:#fff3e0,stroke:#ff9800,stroke-width:3px
+    style C fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
+    style B1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px,stroke-dasharray: 5 5
+    style C1 fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,stroke-dasharray: 5 5
+            </div>
+        </div>
+
+        <!-- 2. 標的尋找邏輯 -->
+        <div class="diagram">
+            <h2>2. 標的尋找邏輯 (Target Selection Logic)</h2>
+            <div class="mermaid">
+graph TB
+    START[尋找標的] --> MSG[消息面驅動的<br/>暴漲暴跌段期]
+    
+    MSG --> PATTERN1[圖形特徵<br/>一座山或拉出針]
+    MSG --> PATTERN2[反身性原理的極端]
+    
+    PATTERN1 --> STATE[股票狀態循環]
+    PATTERN2 --> STATE
+    
+    STATE --> S1[正常狀態]
+    STATE --> S2[異常超買]
+    STATE --> S3[異常超賣]
+    STATE --> S4[價值回歸走平橫盤]
+    
+    S3 --> FILTER[篩選條件]
+    S4 --> FILTER
+    
+    FILTER --> F1[IVR/IVP 歷史高位]
+    FILTER --> F2[CHOP 從趨勢轉向震盪]
+    FILTER --> F3[布林帶從擴張轉回收縮]
+    FILTER --> F4[股價有反彈空間<br/>但下跌風險]
+    FILTER --> F5[過去籌碼的支撐<br/>部分風險]
+    
+    F1 --> TARGET[符合條件的標的]
+    F2 --> TARGET
+    F3 --> TARGET
+    F4 --> TARGET
+    F5 --> TARGET
+    
+    style START fill:#e1f5ff,stroke:#0288d1,stroke-width:3px
+    style MSG fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style PATTERN1 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style PATTERN2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style STATE fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style FILTER fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    style TARGET fill:#c8e6c9,stroke:#4caf50,stroke-width:3px
+            </div>
+        </div>
+
+        <!-- 3. 策略執行流程 -->
+        <div class="diagram">
+            <h2>3. 策略執行流程 (Strategy Execution)</h2>
+            <div class="mermaid">
+graph TB
+    ENTRY[買進股票<br/>不是為了抄底<br/>低風險高套利] --> POSITION[持有股數<br/>1.5-2倍對應<br/>Covered Call]
+    
+    POSITION --> WEEKLY[每週執行]
+    
+    WEEKLY --> SELL[賣出 Covered Call<br/>價格: 股價 3%-5%<br/>行權價: 需上漲 10%+<br/>視 IV 而定]
+    
+    SELL --> OUTCOME{結果判斷}
+    
+    OUTCOME -->|被行權| EXERCISED[股票被行使<br/>當週報酬: 15%<br/>含權利金]
+    OUTCOME -->|未執行| NOTEXEC[未執行<br/>每週收取: 5%<br/>權利金]
+    
+    EXERCISED --> NEXT1[執行 Short Put OTM<br/>用現金擔保<br/>回補繼續計劃]
+    
+    NOTEXEC --> NEXT2[下週繼續<br/>賣出 Covered Call]
+    
+    NEXT1 --> CHECK[檢查 IV 水平]
+    NEXT2 --> CHECK
+    
+    CHECK -->|IV 仍高| WEEKLY
+    CHECK -->|IV 低到無套利機會| EXIT[結束策略<br/>尋找下一標的]
+    
+    style ENTRY fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
+    style POSITION fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style SELL fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style EXERCISED fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style NOTEXEC fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style EXIT fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+            </div>
+        </div>
+
+        <!-- 4. 風險與報酬分析 -->
+        <div class="diagram">
+            <h2>4. 風險與報酬分析 (Risk & Reward Analysis)</h2>
+            <div class="mermaid">
+graph LR
+    subgraph "報酬結構 (Reward Structure)"
+        R1[被行權: 15%/週<br/>含權利金]
+        R2[未執行: 5%/週<br/>權利金收入]
+    end
+    
+    subgraph "風險控制 (Risk Control)"
+        RISK1[風險1: 暴跌]
+        PROTECT1[保障: 股價位處低位]
+        
+        RISK2[風險2: IV 離開高位]
+        PROTECT2[應對: 收更近的期權<br/>但仍有套利空間]
+        
+        RISK3[風險3: 每週下跌 > 5%]
+        PROTECT3[風險範圍: 下跌 5% 內<br/>仍為正報酬]
+    end
+    
+    subgraph "優勢與限制 (Advantages & Limitations)"
+        ADV1[比被動持有股票好超多]
+        ADV2[沒有超額報酬]
+        SOLVE[解決方案:<br/>持有 1.5-2 倍股數<br/>空頭捕捉上漲<br/>限制最大風險敞口]
+    end
+    
+    RISK1 -.->|對應| PROTECT1
+    RISK2 -.->|對應| PROTECT2
+    RISK3 -.->|對應| PROTECT3
+    ADV2 -.->|對應| SOLVE
+    
+    style R1 fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style R2 fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style RISK1 fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+    style RISK2 fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+    style RISK3 fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+    style PROTECT1 fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    style PROTECT2 fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    style PROTECT3 fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    style ADV1 fill:#e1f5ff,stroke:#0288d1,stroke-width:2px
+    style ADV2 fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+    style SOLVE fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+            </div>
+        </div>
+
+        <!-- 5. 極端風險管制 -->
+        <div class="diagram">
+            <h2>5. 極端風險管制 (Extreme Risk Management)</h2>
+            <div class="mermaid">
+graph TB
+    PORTFOLIO[投資組合建構] --> DIVERSIFY[分散策略]
+    
+    DIVERSIFY --> MULTI[尋找多間股票]
+    
+    MULTI --> CRITERIA1[符合篩選規則]
+    MULTI --> CRITERIA2[無相關性<br/>降低系統性風險]
+    
+    CRITERIA1 --> STOCK1[股票 A<br/>執行策略]
+    CRITERIA1 --> STOCK2[股票 B<br/>執行策略]
+    CRITERIA1 --> STOCK3[股票 C<br/>執行策略]
+    CRITERIA1 --> STOCKN[股票 N<br/>執行策略]
+    
+    CRITERIA2 --> CORR[相關性檢查<br/>行業分散<br/>地域分散<br/>市場分散]
+    
+    STOCK1 --> MONITOR[持續監控]
+    STOCK2 --> MONITOR
+    STOCK3 --> MONITOR
+    STOCKN --> MONITOR
+    
+    MONITOR --> REBALANCE[動態調整<br/>IV 變化時<br/>重新評估]
+    
+    REBALANCE --> EXIT2[個別標的退出條件]
+    EXIT2 --> EXITCOND[IV 低到無套利機會<br/>尋找替代標的]
+    
+    style PORTFOLIO fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
+    style DIVERSIFY fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style CRITERIA1 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style CRITERIA2 fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style MONITOR fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    style REBALANCE fill:#fff9c4,stroke:#fbc02d,stroke-width:2px
+    style EXITCOND fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+            </div>
+        </div>
+
+        <!-- 6. 完整策略流程圖 -->
+        <div class="diagram">
+            <h2>6. 完整策略流程圖 (Complete Strategy Flow)</h2>
+            <div class="mermaid">
+flowchart TD
+    START([開始]) --> FIND[尋找標的<br/>消息面驅動暴漲暴跌<br/>IVR/IVP 歷史高位]
+    
+    FIND --> FILTER[篩選條件<br/>CHOP 趨勢轉震盪<br/>布林帶擴張轉收縮<br/>有反彈空間+支撐]
+    
+    FILTER --> BUY[買進股票<br/>持有 1.5-2 倍股數]
+    
+    BUY --> LOOP[每週循環]
+    
+    LOOP --> SELLCC[賣出 Covered Call<br/>3-5% 權利金<br/>行權需上漲 10%+]
+    
+    SELLCC --> WAIT[等待結果]
+    
+    WAIT -->|被行權| EXERCISED[賺 15%/週<br/>含權利金]
+    WAIT -->|未執行| COLLECT[收取 5%/週<br/>權利金]
+    
+    EXERCISED --> SHORTPUT[Short Put OTM<br/>現金擔保<br/>回補繼續]
+    
+    COLLECT --> CHECKIV[檢查 IV 水平]
+    SHORTPUT --> CHECKIV
+    
+    CHECKIV -->|IV 仍高| LOOP
+    CHECKIV -->|IV 低| EXIT[退出此標的<br/>尋找下一標的]
+    
+    EXIT --> FIND
+    
+    style START fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
+    style FIND fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style FILTER fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style BUY fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    style SELLCC fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style EXERCISED fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style COLLECT fill:#c8e6c9,stroke:#4caf50,stroke-width:2px
+    style EXIT fill:#ffcdd2,stroke:#f44336,stroke-width:2px
+            </div>
+        </div>
+
+        <!-- 關鍵要點說明 -->
+        <div class="note-box">
+            <h3>💡 策略核心邏輯</h3>
+            <ul>
+                <li><strong>不是抄底</strong>：買進是為了在低風險下賺取高套利，而非預測底部</li>
+                <li><strong>時間價值套利</strong>：利用高 IV 環境，每週收取權利金</li>
+                <li><strong>風險緩衝</strong>：只要每週下跌不超過 5%，仍為正報酬</li>
+                <li><strong>動態調整</strong>：IV 下降時調整策略，尋找新的套利機會</li>
+            </ul>
+        </div>
+
+        <div class="risk-box">
+            <h3>⚠️ 風險提醒</h3>
+            <ul>
+                <li><strong>暴跌風險</strong>：雖然股價位處低位，但仍需監控極端市場事件</li>
+                <li><strong>IV 衰減</strong>：當 IV 離開高位，只能收取更近的期權，套利空間縮小</li>
+                <li><strong>流動性風險</strong>：確保選擇的標的有足夠的期權流動性</li>
+                <li><strong>集中風險</strong>：透過多標的分散，降低單一標的風險</li>
+            </ul>
+        </div>
+
+        <div class="advantage-box">
+            <h3>✅ 策略優勢</h3>
+            <ul>
+                <li><strong>穩定現金流</strong>：每週收取權利金，提供持續收入</li>
+                <li><strong>風險可控</strong>：透過 Covered Call 限制上漲風險，透過低位買進降低下跌風險</li>
+                <li><strong>比被動持有優</strong>：在震盪市場中，比單純持有股票表現更好</li>
+                <li><strong>靈活退出</strong>：當 IV 下降時，可以快速轉換到新的套利機會</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>
+
