@@ -77,30 +77,11 @@
 <body>
     <div class="container">
         <h1>📊 交易策略 Block Diagram</h1>
-        <p class="subtitle">從投資到投機到套利：做空期權計劃</p>
+        <p class="subtitle">防守型套利：做空期權計劃</p>
 
-        <!-- 1. 思維演進階段 -->
+        <!-- 1. 標的尋找邏輯 -->
         <div class="diagram">
-            <h2>1. 思維演進階段 (Evolution Stages)</h2>
-            <div class="mermaid">
-graph LR
-    A[投資階段<br/>Investment] -->|進化| B[投機階段<br/>Speculation]
-    B -->|進化| C[套利階段<br/>Arbitrage<br/>當前階段]
-    
-    B1[買看漲期權<br/>Long Call Options] -.->|投機時期策略| B
-    C1[做空期權計劃<br/>Short Options Strategy] -.->|套利時期策略| C
-    
-    style A fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
-    style B fill:#fff3e0,stroke:#ff9800,stroke-width:3px
-    style C fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
-    style B1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px,stroke-dasharray: 5 5
-    style C1 fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,stroke-dasharray: 5 5
-            </div>
-        </div>
-
-        <!-- 2. 標的尋找邏輯 -->
-        <div class="diagram">
-            <h2>2. 標的尋找邏輯 (Target Selection Logic)</h2>
+            <h2>1. 標的尋找邏輯 (Target Selection Logic)</h2>
             <div class="mermaid">
 graph TB
     START[尋找標的] --> MSG[消息面驅動的<br/>暴漲暴跌段期]
@@ -143,7 +124,7 @@ graph TB
 
         <!-- 3. 策略執行流程 -->
         <div class="diagram">
-            <h2>3. 策略執行流程 (Strategy Execution)</h2>
+            <h2>2. 策略執行流程 (Strategy Execution)</h2>
             <div class="mermaid">
 graph TB
     ENTRY[買進股票<br/>不是為了抄底<br/>低風險高套利] --> POSITION[持有股數<br/>1.5-2倍對應<br/>Covered Call]
@@ -178,7 +159,7 @@ graph TB
 
         <!-- 4. 風險與報酬分析 -->
         <div class="diagram">
-            <h2>4. 風險與報酬分析 (Risk & Reward Analysis)</h2>
+            <h2>3. 風險與報酬分析 (Risk & Reward Analysis)</h2>
             <div class="mermaid">
 graph LR
     subgraph "報酬結構 (Reward Structure)"
@@ -224,7 +205,7 @@ graph LR
 
         <!-- 5. 極端風險管制 -->
         <div class="diagram">
-            <h2>5. 極端風險管制 (Extreme Risk Management)</h2>
+            <h2>4. 極端風險管制 (Extreme Risk Management)</h2>
             <div class="mermaid">
 graph TB
     PORTFOLIO[投資組合建構] --> DIVERSIFY[分散策略]
@@ -263,7 +244,7 @@ graph TB
 
         <!-- 6. 完整策略流程圖 -->
         <div class="diagram">
-            <h2>6. 完整策略流程圖 (Complete Strategy Flow)</h2>
+            <h2>5. 完整策略流程圖 (Complete Strategy Flow)</h2>
             <div class="mermaid">
 flowchart TD
     START([開始]) --> FIND[尋找標的<br/>消息面驅動暴漲暴跌<br/>IVR/IVP 歷史高位]

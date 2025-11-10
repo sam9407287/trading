@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>交易策略 - 思维演进阶段</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .stage-box {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .stage-box h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← 返回主页</a>
+        <h1>🧠 交易策略思维演进</h1>
+        <p class="subtitle">從投資到投機到套利的完整演進過程</p>
+
+        <!-- 思維演進階段 -->
+        <div class="diagram">
+            <h2>思維演進階段 (Evolution Stages)</h2>
+            <div class="mermaid">
+graph LR
+    A[投資階段<br/>Investment] -->|進化| B[投機階段<br/>Speculation]
+    B -->|進化| C[套利階段<br/>Arbitrage<br/>當前階段]
+    
+    B1[買看漲期權<br/>Long Call Options] -.->|投機時期策略| B
+    C1[做空期權計劃<br/>Short Options Strategy] -.->|套利時期策略| C
+    
+    style A fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
+    style B fill:#fff3e0,stroke:#ff9800,stroke-width:3px
+    style C fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
+    style B1 fill:#fff3e0,stroke:#ff9800,stroke-width:2px,stroke-dasharray: 5 5
+    style C1 fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,stroke-dasharray: 5 5
+            </div>
+        </div>
+
+        <!-- 各階段詳細說明 -->
+        <div class="stage-box">
+            <h3>📈 投資階段 (Investment Stage)</h3>
+            <p><strong>特點：</strong>長期持有，價值投資，追求穩定成長</p>
+            <p><strong>策略：</strong>買入並持有優質股票，關注基本面分析</p>
+            <p><strong>風險：</strong>市場波動，長期回報不確定</p>
+        </div>
+
+        <div class="stage-box">
+            <h3>🎯 投機階段 (Speculation Stage)</h3>
+            <p><strong>特點：</strong>追求短期獲利，利用市場波動</p>
+            <p><strong>策略：</strong>買看漲期權 (Long Call Options)，利用槓桿放大收益</p>
+            <p><strong>風險：</strong>時間價值衰減，方向判斷錯誤導致損失</p>
+        </div>
+
+        <div class="stage-box">
+            <h3>💰 套利階段 (Arbitrage Stage) - 當前階段</h3>
+            <p><strong>特點：</strong>低風險高套利，利用市場效率不足</p>
+            <p><strong>策略：</strong>做空期權計劃 (Short Options Strategy)，收取時間價值</p>
+            <p><strong>優勢：</strong>穩定現金流，風險可控，比被動持有表現更好</p>
+            <p><strong>核心邏輯：</strong>不是預測方向，而是利用高 IV 環境進行套利</p>
+        </div>
+
+        <div class="diagram">
+            <h2>演進邏輯</h2>
+            <div class="mermaid">
+flowchart TD
+    INVEST[投資階段<br/>追求長期價值] -->|發現市場效率不足| SPEC[投機階段<br/>利用波動獲利]
+    SPEC -->|發現時間價值套利機會| ARB[套利階段<br/>收取權利金]
+    
+    INVEST -.->|策略: 買入持有| INVSTRAT[長期持有股票]
+    SPEC -.->|策略: 買看漲期權| SPECSTRAT[Long Call Options]
+    ARB -.->|策略: 做空期權| ARBSTRAT[Short Options<br/>Covered Call<br/>防守型套利]
+    
+    style INVEST fill:#e8f5e9,stroke:#4caf50,stroke-width:3px
+    style SPEC fill:#fff3e0,stroke:#ff9800,stroke-width:3px
+    style ARB fill:#e3f2fd,stroke:#2196f3,stroke-width:3px
+    style INVSTRAT fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,stroke-dasharray: 5 5
+    style SPECSTRAT fill:#fff3e0,stroke:#ff9800,stroke-width:2px,stroke-dasharray: 5 5
+    style ARBSTRAT fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,stroke-dasharray: 5 5
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 20
+            },
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>
+
