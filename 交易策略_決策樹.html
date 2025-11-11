@@ -1715,8 +1715,18 @@ flowchart TD
 
         // 清除所有數據
         function clearAll() {
-            if (confirm('確定要清除所有數據嗎？')) {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
+            if (confirm('確定要清除所有數據嗎？此操作無法復原！')) {
+                // 保存當前用戶ID
+                const currentUserId = dashboardData.userId;
+                
+                // 重置數據結構，但保留userId
                 dashboardData = {
+                    userId: currentUserId,
                     capitalAdditions: [],
                     stocks: {}
                 };
@@ -1735,9 +1745,39 @@ flowchart TD
                     overviewDiv.innerHTML = '<p style="color: #999; font-style: italic;">請輸入持倉數據</p>';
                 }
                 
-                localStorage.removeItem('tradingDashboard');
-                localStorage.removeItem('tradingPrices');
+                // 清除用戶特定的localStorage數據
+                const userKey = `trading_user_${currentUserId}`;
+                const userData = localStorage.getItem(userKey);
+                if (userData) {
+                    try {
+                        const parsed = JSON.parse(userData);
+                        // 保留用戶信息和密碼，只清除交易數據
+                        const clearedUserData = {
+                            password: parsed.password,
+                            dashboardData: {
+                                userId: currentUserId,
+                                capitalAdditions: [],
+                                stocks: {}
+                            },
+                            createdAt: parsed.createdAt || new Date().toISOString()
+                        };
+                        localStorage.setItem(userKey, JSON.stringify(clearedUserData));
+                    } catch (e) {
+                        console.error('清除用戶數據時出錯:', e);
+                    }
+                }
+                
+                // 清除通用的價格數據（可選，因為價格是全局的）
+                // localStorage.removeItem('tradingPrices');
+                
+                // 重置上一步按鈕
+                const undoBtn = document.getElementById('undo-btn');
+                if (undoBtn) {
+                    undoBtn.disabled = true;
+                }
+                
                 updateDisplay();
+                alert('所有數據已清除！');
             }
         }
 
