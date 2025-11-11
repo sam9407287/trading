@@ -11,7 +11,7 @@ app.use(express.static(__dirname));
 // 主頁 - 列出所有策略圖表
 app.get('/', (req, res) => {
   // 過濾掉子頁面，只顯示主頁面
-  const subPages = ['交易策略_標的物選擇.html', '交易策略_決策樹.html', '交易策略_模擬器.html'];
+  const subPages = ['交易策略_標的物選擇.html', '交易策略_決策樹.html', '交易策略_模擬器.html', '交易策略_模擬交易2.0.html'];
   
   const files = fs.readdirSync(__dirname)
     .filter(file => file.endsWith('.html') && !subPages.includes(file))
