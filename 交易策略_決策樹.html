@@ -184,6 +184,15 @@
             .parameters {
                 grid-template-columns: 1fr;
             }
+            
+            /* 儀表板響應式 */
+            .section > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .section input, .section button {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
