@@ -19,10 +19,12 @@ app.get('/', (req, res) => {
 
   const html = `
     <!DOCTYPE html>
-    <html>
+    <html lang="zh-TW">
     <head>
       <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>交易策略圖表集合</title>
+      <script src="/language.js"></script>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
@@ -63,11 +65,41 @@ app.get('/', (req, res) => {
         .file-item a:hover {
           color: #3498db;
         }
+        .lang-switch {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #3498db;
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 20px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          z-index: 1000;
+          transition: all 0.3s ease;
+        }
+        .lang-switch:hover {
+          background: #2980b9;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        @media (max-width: 768px) {
+          .lang-switch {
+            top: 10px;
+            right: 10px;
+            padding: 8px 16px;
+            font-size: 12px;
+          }
+        }
       </style>
     </head>
     <body>
+      <button class="lang-switch" id="lang-switch" onclick="toggleLanguage()">English</button>
       <div class="container">
-        <h1>📊 交易策略圖表集合</h1>
+        <h1 data-i18n="home-title">📊 交易策略圖表集合</h1>
         <ul class="file-list">
           ${files.map(file => `
             <li class="file-item">
