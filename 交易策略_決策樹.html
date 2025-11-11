@@ -304,168 +304,6 @@
             </div>
         </div>
 
-        <!-- 動態儀表板 -->
-        <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-            <h2 style="color: white; border-bottom-color: rgba(255,255,255,0.3);">📊 動態儀表板 - 模擬模式</h2>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-                <!-- 左側：輸入區域 -->
-                <div style="background: rgba(255,255,255,0.95); color: #2c3e50; padding: 20px; border-radius: 8px;">
-                    <h3 style="color: #2c3e50; margin-bottom: 15px;">📝 輸入持倉與操作</h3>
-                    
-                    <div style="margin-bottom: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">添加資金</label>
-                        <input type="number" id="add-capital" placeholder="例如: 1000" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <button onclick="addCapital()" style="width: 100%; margin-top: 5px; padding: 8px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💰 添加資金</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">選擇/新增股票</label>
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-                            <select id="stock-select" onchange="selectStock()" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                <option value="">-- 選擇股票 --</option>
-                            </select>
-                            <input type="text" id="stock-symbol" placeholder="新增股票代號" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <button onclick="addNewStock()" style="width: 100%; margin-top: 5px; padding: 8px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➕ 新增股票</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入股票</label>
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-                            <input type="number" id="buy-shares" placeholder="股數" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="number" id="buy-price" placeholder="價格" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <button onclick="addBuyOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➕ 添加買入</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出股票</label>
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
-                            <input type="number" id="sell-shares" placeholder="股數" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="number" id="sell-price" placeholder="價格" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <button onclick="addSellOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➖ 添加賣出</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出 Call（開倉）</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                            <input type="number" id="call-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="number" id="call-premium" placeholder="權利金（每股）" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="date" id="call-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 5px;">💡 提示：權利金為每股價格，例如$50權利金輸入0.5</p>
-                        <button onclick="addCallOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➕ 添加賣 Call</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入 Call（平倉）</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                            <input type="number" id="buy-call-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="number" id="buy-call-premium" placeholder="買回價（每股）" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="date" id="buy-call-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 5px;">💡 提示：買回價為每股價格，例如$50買回價輸入0.5</p>
-                        <button onclick="addBuyCallOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➖ 買回 Call</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出 Put（開倉）</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                            <input type="number" id="put-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="number" id="put-premium" placeholder="權利金（每股）" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="date" id="put-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 5px;">💡 提示：權利金為每股價格，例如$50權利金輸入0.5</p>
-                        <button onclick="addPutOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➕ 添加賣 Put</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入 Put（平倉）</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                            <input type="number" id="buy-put-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="number" id="buy-put-premium" placeholder="買回價（每股）" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <input type="date" id="buy-put-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        </div>
-                        <p style="font-size: 0.85em; color: #666; margin-top: 5px;">💡 提示：買回價為每股價格，例如$50買回價輸入0.5</p>
-                        <button onclick="addBuyPutOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➖ 買回 Put</button>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px; padding: 15px; background: #fff3e0; border-radius: 8px; border: 2px solid #ff9800;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">⚡ 期權被行使</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <select id="exercise-call-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                <option value="">選擇被行使的Call</option>
-                            </select>
-                            <select id="exercise-put-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                <option value="">選擇被行使的Put</option>
-                            </select>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <button onclick="exerciseCall()" style="padding: 10px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">📞 Call被行使</button>
-                            <button onclick="exercisePut()" style="padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">📉 Put被行使</button>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                        <button onclick="undoLastOperation()" id="undo-btn" style="padding: 10px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;" disabled>↶ 上一步</button>
-                        <button onclick="clearAll()" style="padding: 10px; background: #757575; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">🗑️ 清除所有</button>
-                        <button onclick="saveData()" style="padding: 10px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💾 保存數據</button>
-                    </div>
-                </div>
-                
-                <!-- 右側：狀態顯示 -->
-                <div style="background: rgba(255,255,255,0.95); color: #2c3e50; padding: 20px; border-radius: 8px;">
-                    <h3 style="color: #2c3e50; margin-bottom: 15px;">📈 當前狀態</h3>
-                    
-                    <div id="current-status" style="margin-bottom: 20px;">
-                        <div style="padding: 15px; background: #e3f2fd; border-radius: 8px; margin-bottom: 10px;">
-                            <strong>總持股數：</strong><span id="total-shares">0</span> 股
-                        </div>
-                        <div style="padding: 15px; background: #fff3e0; border-radius: 8px; margin-bottom: 10px;">
-                            <strong>平均成本：</strong>$<span id="avg-cost">0.00</span>
-                        </div>
-                        <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; margin-bottom: 10px;">
-                            <strong>當前階段：</strong><span id="current-stage">未開始</span>
-                        </div>
-                        <div style="padding: 15px; background: #fce4ec; border-radius: 8px; margin-bottom: 10px;">
-                            <strong>決策樹節點：</strong><span id="decision-node">等待輸入數據</span>
-                        </div>
-                        <div style="padding: 15px; background: #fff9c4; border-radius: 8px; margin-bottom: 10px;">
-                            <strong>已實現損益：</strong><span id="realized-pnl" style="font-weight: bold;">$0.00</span>
-                        </div>
-                        <div style="padding: 15px; background: #e1f5ff; border-radius: 8px;">
-                            <strong>未實現損益：</strong><span id="unrealized-pnl" style="font-weight: bold;">$0.00</span>
-                        </div>
-                        <div style="padding: 15px; background: #f3e5f5; border-radius: 8px; margin-top: 10px;">
-                            <strong>總資產價值：</strong><span id="total-assets" style="font-weight: bold; color: #9c27b0;">$0.00</span>
-                        </div>
-                        <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; margin-top: 10px;">
-                            <strong>可用資金：</strong><span id="available-cash" style="color: #4caf50; font-weight: bold;">$0.00</span>
-                        </div>
-                    </div>
-                    
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px 0;">📊 所有持倉總覽（可在此輸入即時價格）</h4>
-                    <div id="all-positions-overview" style="max-height: 500px; overflow-y: auto; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <p style="color: #999; font-style: italic;">請輸入持倉數據</p>
-                    </div>
-                    
-                    <h4 style="color: #2c3e50; margin: 20px 0 10px 0;">📋 操作建議與任務清單</h4>
-                    <div id="task-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <p style="color: #999; font-style: italic;">請輸入持倉數據以生成任務</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 操作歷史 -->
-            <div style="margin-top: 20px; background: rgba(255,255,255,0.95); color: #2c3e50; padding: 20px; border-radius: 8px;">
-                <h3 style="color: #2c3e50; margin-bottom: 15px;">📜 操作歷史</h3>
-                <div id="operation-history" style="max-height: 200px; overflow-y: auto;">
-                    <p style="color: #999; font-style: italic;">尚無操作記錄</p>
-                </div>
-            </div>
-        </div>
 
         <!-- 系統參數 -->
         <div class="section">
@@ -495,6 +333,11 @@
                     <strong>預備現金</strong>
                     已預留足夠現金，準備在 $9.00 執行 Short Put
                 </div>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="交易策略_模擬器.html" style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: transform 0.2s;">
+                    🎮 進入模擬交易
+                </a>
             </div>
         </div>
 
@@ -1242,7 +1085,7 @@ flowchart TD
             
             savePrices();
             updateLeaderboard();
-            alert('數據已保存！');
+            // 數據會自動保存，不需要提示
         }
         
         // 保存操作快照（用於撤銷）
@@ -1293,6 +1136,7 @@ flowchart TD
             }
             updateDisplay();
             updateAvailableCash();
+            // 自動保存（數據會自動保存，不需要手動保存）
             saveData();
             
             // 更新撤銷按鈕狀態
@@ -1300,8 +1144,6 @@ flowchart TD
             if (undoBtn) {
                 undoBtn.disabled = operationHistory.length === 0;
             }
-            
-            alert(`已撤銷：${lastOperation.type}`);
         }
 
         // 添加買入操作
