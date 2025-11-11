@@ -1134,7 +1134,9 @@
             document.getElementById('call-expiry').value = '';
             updateStockSelect();
             updateAvailableCash();
-            updateDisplay();
+            // 不立即更新持倉總覽，等待其他操作觸發
+            updatePnL();
+            updateHistory();
             saveData();
         }
 
@@ -1252,7 +1254,9 @@
             document.getElementById('put-premium').value = '';
             document.getElementById('put-expiry').value = '';
             updateAvailableCash();
-            updateDisplay();
+            // 不立即更新持倉總覽，等待其他操作觸發
+            updatePnL();
+            updateHistory();
             saveData();
         }
 
@@ -1351,6 +1355,34 @@
                 return;
             }
             
+            // 檢查是否有足夠的股票（100股）
+            let currentShares = 0;
+            let buyQueue = [];
+            stockData.operations.forEach(op => {
+                if (op.type === 'buy') {
+                    buyQueue.push({shares: op.shares, price: op.price});
+                    currentShares += op.shares;
+                } else if (op.type === 'sell') {
+                    let remaining = op.shares;
+                    while (remaining > 0 && buyQueue.length > 0) {
+                        if (buyQueue[0].shares <= remaining) {
+                            currentShares -= buyQueue[0].shares;
+                            remaining -= buyQueue[0].shares;
+                            buyQueue.shift();
+                        } else {
+                            currentShares -= remaining;
+                            buyQueue[0].shares -= remaining;
+                            remaining = 0;
+                        }
+                    }
+                }
+            });
+            
+            if (currentShares < 100) {
+                alert(`無法行使Call！\n需要至少100股才能行使Call\n當前持股：${currentShares}股\n\n請先買入足夠的股票後再行使Call。`);
+                return;
+            }
+            
             // 使用Call的strike價格作為行使價格
             const exercisePrice = call.strike;
             
@@ -1404,6 +1436,16 @@
             const put = stockData.puts.find(p => p.id == putId);
             if (!put || put.exercised || put.closed) {
                 alert('該Put已被行使或已平倉');
+                return;
+            }
+            
+            // 檢查是否有足夠的現金（100股 * strike價格）
+            const requiredCash = 100 * put.strike;
+            const availableCash = calculateAvailableCash();
+            
+            if (availableCash < requiredCash) {
+                const shortage = requiredCash - availableCash;
+                alert(`無法行使Put！\n需要資金：$${requiredCash.toFixed(2)}（100股 × $${put.strike}）\n可用資金：$${availableCash.toFixed(2)}\n不足金額：$${shortage.toFixed(2)}\n\n請添加資金後再行使Put。`);
                 return;
             }
             
