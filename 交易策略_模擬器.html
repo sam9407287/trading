@@ -734,7 +734,8 @@
             
             // 計算總持股和持倉價值
             let totalShares = 0;
-            let holdingValue = 0;  // 只包含股票價值，不包含期權
+            let holdingValue = 0;  // 只包含股票價值
+            let optionLiability = 0;  // 期權負債（賣出期權的初始權利金）
             let unrealizedPnL = 0;
             
             // 計算股票部分（資產價值和損益）
@@ -755,11 +756,16 @@
                 }
             }
             
-            // 計算期權部分損益 - 期權不被計入資產價值，只在有實時價格更新時才計算損益
-            // 期權權利金在買入時已從可用資金扣除，或在賣出時已增加到可用資金
+            // 計算期權部分 - 期權構成負債
             for (const optionKey in userData.options) {
                 const option = userData.options[optionKey];
                 const currentPrice = userData.holdingPrices[optionKey];
+                
+                // 賣出期權時產生負債（初始權利金作為負債）
+                if (option.quantity < 0) {
+                    // 賣出期權 - 權利金是負債
+                    optionLiability += option.premium * Math.abs(option.quantity) * 100;
+                }
                 
                 // 只有當實時價格被更新時，才計算期權未實現損益
                 if (currentPrice !== undefined) {
@@ -784,8 +790,8 @@
             
             document.getElementById('unrealized-pnl').textContent = `$${unrealizedPnL.toFixed(2)}`;
             
-            // 總資產價值 = 可用資金 + 持倉實時價值
-            const totalAssets = userData.availableCash + holdingValue;
+            // 總資產價值 = 可用資金 + 股票實時價值 - 期權負債
+            const totalAssets = userData.availableCash + holdingValue - optionLiability;
             document.getElementById('total-assets').textContent = `$${totalAssets.toFixed(2)}`;
             
             // 總損益
@@ -867,11 +873,12 @@
                                 當前價格: <input type="number" id="${inputId}" step="0.01" min="0" placeholder="輸入價格" style="width: 80px; padding: 4px; font-size: 12px;">
                                 <button onclick="updatePriceDisplay(${idx}, '${h.type}', '${h.key || h.symbol}')" style="padding: 4px 10px; cursor: pointer; font-size: 12px; background: #3498db; color: white; border: none; border-radius: 3px;">更新</button>
                             </div>
+                            <div id="${priceDisplayId}" style="margin-top: 5px; font-size: 12px; color: #3498db; font-weight: bold;">---</div>
                             <div id="${pnlId}" style="margin-top: 5px; font-size: 12px; font-weight: bold; color: ${h.isShort ? '#27ae60' : '#e74c3c'};">未實現損益: 未更新</div>
                         </div>
                         <div style="text-align: right;">
                             $${h.value.toFixed(2)}<br>
-                            <span id="${priceDisplayId}" style="font-size: 12px; color: #7f8c8d;">--</span>
+                            <span style="font-size: 12px; color: #7f8c8d;">--</span>
                         </div>
                     </div>
                 `;
