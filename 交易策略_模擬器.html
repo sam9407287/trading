@@ -1564,23 +1564,45 @@
 
             const stockData = getCurrentStockData();
             
-            // 計算總持股數和平均成本（使用FIFO方法）
+            // 計算總持股數和平均成本（使用FIFO方法，支持空頭）
             let totalShares = 0;
             let totalCost = 0;
             let buyQueue = [];
+            let sellQueue = []; // 用於追蹤空頭
             
             stockData.operations.forEach(op => {
                 if (op.type === 'buy') {
-                    buyQueue.push({shares: op.shares, price: op.price});
-                    totalShares += op.shares;
-                    totalCost += op.shares * op.price;
+                    // 如果有空頭，先平倉
+                    let remaining = op.shares;
+                    while (remaining > 0 && sellQueue.length > 0) {
+                        if (sellQueue[0].shares <= remaining) {
+                            // 完全平倉這個空頭
+                            totalCost -= sellQueue[0].shares * sellQueue[0].price; // 減少空頭成本
+                            totalShares += sellQueue[0].shares; // 增加持股（減少空頭）
+                            remaining -= sellQueue[0].shares;
+                            sellQueue.shift();
+                        } else {
+                            // 部分平倉
+                            totalCost -= remaining * sellQueue[0].price;
+                            totalShares += remaining; // 增加持股（減少空頭）
+                            sellQueue[0].shares -= remaining;
+                            remaining = 0;
+                        }
+                    }
+                    // 剩餘的買入加入多頭
+                    if (remaining > 0) {
+                        buyQueue.push({shares: remaining, price: op.price});
+                        totalShares += remaining;
+                        totalCost += remaining * op.price;
+                    }
                 } else if (op.type === 'sell') {
                     let remaining = op.shares;
+                    // 先平倉多頭
                     while (remaining > 0 && buyQueue.length > 0) {
                         if (buyQueue[0].shares <= remaining) {
-                            remaining -= buyQueue[0].shares;
                             totalCost -= buyQueue[0].shares * buyQueue[0].price;
                             totalShares -= buyQueue[0].shares;
+                            remaining -= buyQueue[0].shares;
                             buyQueue.shift();
                         } else {
                             totalCost -= remaining * buyQueue[0].price;
@@ -1589,10 +1611,17 @@
                             remaining = 0;
                         }
                     }
+                    // 剩餘的賣出成為空頭
+                    if (remaining > 0) {
+                        sellQueue.push({shares: remaining, price: op.price});
+                        totalShares -= remaining; // 負數表示空頭
+                        totalCost += remaining * op.price; // 空頭成本（賣出價格）
+                    }
                 }
             });
 
-            const avgCost = totalShares > 0 ? (totalCost / totalShares).toFixed(2) : 0;
+            // 計算平均成本（多頭用買入成本，空頭用賣出成本）
+            const avgCost = totalShares !== 0 ? (Math.abs(totalCost) / Math.abs(totalShares)).toFixed(2) : 0;
 
             // 更新狀態顯示（支持顯示負數空頭）
             document.getElementById('total-shares').textContent = totalShares;
