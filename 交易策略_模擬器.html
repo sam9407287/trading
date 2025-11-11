@@ -429,7 +429,16 @@
             const key = `trader_${userData.userId}`;
             const saved = localStorage.getItem(key);
             if (saved) {
-                userData = JSON.parse(saved);
+                const loadedData = JSON.parse(saved);
+                userData = {
+                    userId: loadedData.userId || userData.userId,
+                    capital: loadedData.capital || 0,
+                    availableCash: loadedData.availableCash || 0,
+                    trades: loadedData.trades || [],
+                    holdings: loadedData.holdings || {},
+                    options: loadedData.options || {},
+                    holdingPrices: loadedData.holdingPrices || {}
+                };
             }
         }
         
@@ -918,22 +927,28 @@
         // 更新操作記錄
         function updateLogDisplay() {
             const logDiv = document.getElementById('log');
-            if (userData.trades.length === 0) {
+            if (!userData.trades || userData.trades.length === 0) {
                 logDiv.innerHTML = '<div class="empty-log">尚無操作記錄</div>';
                 return;
             }
             
             let html = '';
-            [...userData.trades].reverse().slice(0, 20).forEach(trade => {
-                html += `
-                    <div class="log-item">
-                        <strong>${trade.type}</strong><br>
-                        ${trade.date}
-                    </div>
-                `;
+            [...userData.trades].reverse().slice(0, 50).forEach(trade => {
+                if (trade && trade.type) {
+                    html += `
+                        <div class="log-item">
+                            <strong>${trade.type}</strong><br>
+                            ${trade.date || ''}
+                        </div>
+                    `;
+                }
             });
             
-            logDiv.innerHTML = html;
+            if (html === '') {
+                logDiv.innerHTML = '<div class="empty-log">尚無操作記錄</div>';
+            } else {
+                logDiv.innerHTML = html;
+            }
         }
         
         // 更新期權行使選擇
