@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>防守型套利-細節決策樹 - 150股模型</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/language.js"></script>
     <style>
         * {
             margin: 0;
@@ -39,38 +38,6 @@
         
         .back-link:hover {
             text-decoration: underline;
-        }
-        
-        .lang-switch {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-        
-        .lang-switch:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        
-        @media (max-width: 768px) {
-            .lang-switch {
-                top: 10px;
-                right: 10px;
-                padding: 8px 16px;
-                font-size: 12px;
-            }
         }
         
         h1 {
@@ -221,9 +188,8 @@
     </style>
 </head>
 <body>
-    <button class="lang-switch" id="lang-switch" onclick="toggleLanguage()">English</button>
     <div class="container">
-        <a href="/" class="back-link" data-i18n="back-home">← 返回主頁</a>
+        <a href="/" class="back-link">← 返回主頁</a>
         <h1>🌳 防守型套利-細節決策樹</h1>
         <p class="subtitle">150股模型 - 完整決策樹狀結構</p>
 
