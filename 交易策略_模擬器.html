@@ -1192,13 +1192,25 @@
                 matchingCall.closePrice = premium;
                 matchingCall.closeDate = new Date().toLocaleDateString('zh-TW');
             } else {
-                // 如果沒有匹配的，記錄為買入Call（可能是新的開倉）
+                // 如果沒有匹配的，記錄為買入Call（新的開倉）
                 stockData.buyCalls.push({
                     strike: strike,
                     premium: premium,
                     expiry: expiry,
                     date: new Date().toLocaleDateString('zh-TW'),
                     id: Date.now(),
+                    symbol: currentStock
+                });
+                // 也添加到股票的 operations 中用於計算可用資金
+                if (!stockData.operations) {
+                    stockData.operations = [];
+                }
+                stockData.operations.push({
+                    type: 'buyCall',
+                    strike: strike,
+                    premium: premium,
+                    expiry: expiry,
+                    date: new Date().toLocaleDateString('zh-TW'),
                     symbol: currentStock
                 });
             }
@@ -1209,6 +1221,7 @@
             updateStockSelect();
             updateAvailableCash();
             updateDisplay();
+            updateHistory();
             saveData();
         }
 
@@ -1312,7 +1325,7 @@
                 matchingPut.closePrice = premium;
                 matchingPut.closeDate = new Date().toLocaleDateString('zh-TW');
             } else {
-                // 如果沒有匹配的，記錄為買入Put（可能是新的開倉）
+                // 如果沒有匹配的，記錄為買入Put（新的開倉）
                 stockData.buyPuts.push({
                     strike: strike,
                     premium: premium,
@@ -1321,13 +1334,27 @@
                     id: Date.now(),
                     symbol: currentStock
                 });
+                // 也添加到股票的 operations 中用於計算可用資金
+                if (!stockData.operations) {
+                    stockData.operations = [];
+                }
+                stockData.operations.push({
+                    type: 'buyPut',
+                    strike: strike,
+                    premium: premium,
+                    expiry: expiry,
+                    date: new Date().toLocaleDateString('zh-TW'),
+                    symbol: currentStock
+                });
             }
 
             document.getElementById('buy-put-strike').value = '';
             document.getElementById('buy-put-premium').value = '';
             document.getElementById('buy-put-expiry').value = '';
+            updateStockSelect();
             updateAvailableCash();
             updateDisplay();
+            updateHistory();
             saveData();
         }
         
@@ -1687,12 +1714,12 @@
                         }
                     }
                 });
-                const avgCost = shares > 0 ? cost / shares : 0;
+                const avgCost = shares !== 0 ? cost / Math.abs(shares) : 0;
                 const stockPrice = currentPrices.stocks[symbol]?.stock || 0;
                 const stockValue = stockPrice > 0 ? stockPrice * shares : avgCost * shares;
-                const stockPnL = stockPrice > 0 ? (stockPrice - avgCost) * shares : 0;
+                const stockPnL = stockPrice > 0 ? (shares > 0 ? (stockPrice - avgCost) * shares : (avgCost - stockPrice) * Math.abs(shares)) : 0;
                 
-                if (shares > 0) {
+                if (shares !== 0) {
                     allPositions.push({
                         type: 'stock',
                         symbol: symbol,
