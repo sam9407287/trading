@@ -211,7 +211,20 @@
             }
             
             /* 按鈕響應式 */
-            div[style*="grid-template-columns: 1fr 1fr"] button {
+            div[style*="grid-template-columns: 1fr 1fr"] button,
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] button {
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            /* 排行榜響應式 */
+            #leaderboard {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* 登錄區域響應式 */
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] input,
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] button {
                 font-size: 12px;
                 padding: 8px;
             }
@@ -246,6 +259,50 @@
         <a href="交易策略_防守型策略.html" class="back-link">← 返回防守型策略</a>
         <h1>🌳 防守型套利-細節決策樹</h1>
         <p class="subtitle">150股模型 - 完整決策樹狀結構</p>
+
+        <!-- 用戶登錄/註冊區域 -->
+        <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; margin-bottom: 20px;">
+            <div id="login-section" style="display: block;">
+                <h3 style="color: white; margin-bottom: 15px;">👤 用戶登錄 / 註冊</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="user-id" placeholder="用戶ID" style="padding: 10px; border: none; border-radius: 4px;">
+                    <input type="password" id="user-password" placeholder="密碼" style="padding: 10px; border: none; border-radius: 4px;">
+                    <button onclick="loginOrRegister()" style="padding: 10px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">🔐 登錄/註冊</button>
+                </div>
+                <p style="font-size: 0.9em; opacity: 0.9;">提示：首次使用會自動註冊，數據保存在您的設備上</p>
+            </div>
+            <div id="user-info-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: white; margin: 0;">👤 歡迎，<span id="current-user-id"></span></h3>
+                        <p style="font-size: 0.9em; opacity: 0.9; margin: 5px 0 0 0;">總盈利：<span id="user-total-profit" style="font-weight: bold;">$0.00</span></p>
+                    </div>
+                    <button onclick="logout()" style="padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">登出</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 排行榜 -->
+        <div class="section" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; margin-bottom: 20px;">
+            <h3 style="color: white; margin-bottom: 15px;">🏆 盈利排行榜（前三名）</h3>
+            <div id="leaderboard" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; margin-bottom: 5px;">🥇</div>
+                    <div style="font-weight: bold; font-size: 1.1em;" id="leader-1">-</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;" id="leader-1-amount">$0.00</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; margin-bottom: 5px;">🥈</div>
+                    <div style="font-weight: bold; font-size: 1.1em;" id="leader-2">-</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;" id="leader-2-amount">$0.00</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 2em; margin-bottom: 5px;">🥉</div>
+                    <div style="font-weight: bold; font-size: 1.1em;" id="leader-3">-</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;" id="leader-3-amount">$0.00</div>
+                </div>
+            </div>
+        </div>
 
         <!-- 動態儀表板 -->
         <div class="section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
@@ -345,7 +402,8 @@
                         </div>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <button onclick="undoLastOperation()" id="undo-btn" style="padding: 10px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;" disabled>↶ 上一步</button>
                         <button onclick="clearAll()" style="padding: 10px; background: #757575; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">🗑️ 清除所有</button>
                         <button onclick="saveData()" style="padding: 10px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💾 保存數據</button>
                     </div>
@@ -769,8 +827,9 @@ flowchart TD
             securityLevel: 'loose'
         });
 
-        // 儀表板數據存儲 - 支持多股票
+        // 儀表板數據存儲 - 支持多股票和多用戶
         let dashboardData = {
+            userId: '',  // 當前用戶ID
             capitalAdditions: [],  // [{amount: 1000, date: '2025/01/01'}]
             stocks: {}  // {symbol: {operations: [], calls: [], puts: [], buyCalls: [], buyPuts: []}}
         };
@@ -780,14 +839,89 @@ flowchart TD
         let currentPrices = {
             stocks: {}  // {symbol: {stock: 0, calls: {}, puts: {}}}
         };
+        
+        // 操作歷史棧（用於撤銷功能）
+        let operationHistory = [];  // [{type: 'buy', data: {...}, snapshot: {...}}]
+        let maxHistorySize = 50;  // 最多保存50步操作
+        
+        // 所有用戶數據（用於排行榜，未來會從數據庫讀取）
+        let allUsersData = {};  // {userId: {totalProfit: 0, ...}}
 
-        // 從localStorage載入數據
-        function loadData() {
-            const saved = localStorage.getItem('tradingDashboard');
-            if (saved) {
+        // 用戶登錄/註冊
+        function loginOrRegister() {
+            const userId = document.getElementById('user-id').value.trim();
+            const password = document.getElementById('user-password').value;
+            
+            if (!userId) {
+                alert('請輸入用戶ID');
+                return;
+            }
+            
+            if (!password) {
+                alert('請輸入密碼');
+                return;
+            }
+            
+            // 從localStorage載入該用戶的數據
+            const userKey = `trading_user_${userId}`;
+            const userData = localStorage.getItem(userKey);
+            
+            if (userData) {
+                // 驗證密碼（簡單驗證，未來會連接到數據庫）
+                const parsed = JSON.parse(userData);
+                if (parsed.password !== password) {
+                    alert('密碼錯誤');
+                    return;
+                }
+                // 載入用戶數據
+                loadUserData(userId);
+            } else {
+                // 新用戶註冊
+                const newUserData = {
+                    password: password,
+                    dashboardData: {
+                        userId: userId,
+                        capitalAdditions: [],
+                        stocks: {}
+                    },
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem(userKey, JSON.stringify(newUserData));
+                loadUserData(userId);
+                alert(`歡迎！用戶 ${userId} 註冊成功！`);
+            }
+            
+            // 更新UI
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('user-info-section').style.display = 'block';
+            document.getElementById('current-user-id').textContent = userId;
+            
+            // 更新排行榜
+            updateLeaderboard();
+        }
+        
+        // 載入用戶數據
+        function loadUserData(userId) {
+            const userKey = `trading_user_${userId}`;
+            const userData = localStorage.getItem(userKey);
+            
+            // 重置操作歷史
+            operationHistory = [];
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                undoBtn.disabled = true;
+            }
+            
+            if (userData) {
                 try {
-                    const loaded = JSON.parse(saved);
-                    dashboardData = loaded;
+                    const parsed = JSON.parse(userData);
+                    dashboardData = parsed.dashboardData || {
+                        userId: userId,
+                        capitalAdditions: [],
+                        stocks: {}
+                    };
+                    dashboardData.userId = userId;
+                    
                     if (!dashboardData.stocks) {
                         dashboardData.stocks = {};
                     }
@@ -796,37 +930,173 @@ flowchart TD
                     }
                     
                     // 數據遷移：如果有舊的initialCapital，轉換為capitalAdditions
-                    if (loaded.initialCapital && loaded.initialCapital > 0 && dashboardData.capitalAdditions.length === 0) {
+                    if (parsed.dashboardData && parsed.dashboardData.initialCapital && parsed.dashboardData.initialCapital > 0 && dashboardData.capitalAdditions.length === 0) {
                         dashboardData.capitalAdditions.push({
-                            amount: loaded.initialCapital,
+                            amount: parsed.dashboardData.initialCapital,
                             date: new Date().toLocaleDateString('zh-TW'),
                             id: Date.now()
                         });
                         delete dashboardData.initialCapital;
-                        saveData(); // 保存遷移後的數據
+                        saveData();
                     }
                     
                     updateStockSelect();
                     if (Object.keys(dashboardData.stocks).length > 0) {
                         currentStock = Object.keys(dashboardData.stocks)[0];
                         document.getElementById('stock-select').value = currentStock;
-                        updateDisplay();
                     }
+                    updateDisplay();
                     updateAvailableCash();
+                    loadPrices();
                 } catch (e) {
-                    console.error('載入數據失敗:', e);
+                    console.error('載入用戶數據失敗:', e);
                     dashboardData = {
+                        userId: userId,
                         capitalAdditions: [],
                         stocks: {}
                     };
                 }
-            } else {
+            }
+        }
+        
+        // 登出
+        function logout() {
+            if (confirm('確定要登出嗎？數據已自動保存。')) {
                 dashboardData = {
+                    userId: '',
                     capitalAdditions: [],
                     stocks: {}
                 };
+                currentStock = '';
+                operationHistory = [];
+                document.getElementById('login-section').style.display = 'block';
+                document.getElementById('user-info-section').style.display = 'none';
+                document.getElementById('user-id').value = '';
+                document.getElementById('user-password').value = '';
+                updateDisplay();
             }
-            loadPrices();
+        }
+        
+        // 從localStorage載入數據（兼容舊版本）
+        function loadData() {
+            // 檢查是否已登錄
+            const saved = localStorage.getItem('tradingDashboard');
+            if (saved && !dashboardData.userId) {
+                try {
+                    const loaded = JSON.parse(saved);
+                    // 如果有舊數據但沒有用戶ID，提示登錄
+                    if (loaded.stocks || loaded.capitalAdditions) {
+                        console.log('檢測到舊數據，請先登錄以載入數據');
+                    }
+                } catch (e) {
+                    console.error('載入數據失敗:', e);
+                }
+            }
+            
+            // 載入所有用戶數據用於排行榜
+            loadAllUsersForLeaderboard();
+        }
+        
+        // 載入所有用戶數據（用於排行榜）
+        function loadAllUsersForLeaderboard() {
+            allUsersData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('trading_user_')) {
+                    try {
+                        const userData = JSON.parse(localStorage.getItem(key));
+                        const userId = key.replace('trading_user_', '');
+                        const profit = calculateUserTotalProfit(userData.dashboardData);
+                        allUsersData[userId] = {
+                            totalProfit: profit,
+                            userId: userId
+                        };
+                    } catch (e) {
+                        console.error('載入用戶數據失敗:', key, e);
+                    }
+                }
+            }
+            updateLeaderboard();
+        }
+        
+        // 計算用戶總盈利
+        function calculateUserTotalProfit(userDashboardData) {
+            if (!userDashboardData) return 0;
+            
+            let realizedPnL = 0;
+            let unrealizedPnL = 0;
+            
+            if (!userDashboardData.stocks) return 0;
+            
+            Object.keys(userDashboardData.stocks).forEach(symbol => {
+                const stock = userDashboardData.stocks[symbol];
+                
+                // 計算已實現損益
+                let buyQueue = [];
+                stock.operations.forEach(op => {
+                    if (op.type === 'buy') {
+                        buyQueue.push({shares: op.shares, price: op.price});
+                    } else if (op.type === 'sell') {
+                        let remaining = op.shares;
+                        while (remaining > 0 && buyQueue.length > 0) {
+                            if (buyQueue[0].shares <= remaining) {
+                                realizedPnL += buyQueue[0].shares * (op.price - buyQueue[0].price);
+                                remaining -= buyQueue[0].shares;
+                                buyQueue.shift();
+                            } else {
+                                realizedPnL += remaining * (op.price - buyQueue[0].price);
+                                buyQueue[0].shares -= remaining;
+                                remaining = 0;
+                            }
+                        }
+                    }
+                });
+                
+                // 期權已實現損益
+                stock.calls.forEach(call => {
+                    if (call.closed && call.closePrice !== undefined) {
+                        realizedPnL += (call.premium - call.closePrice) * 100;
+                    }
+                });
+                
+                stock.puts.forEach(put => {
+                    if (put.closed && put.closePrice !== undefined) {
+                        realizedPnL += (put.premium - put.closePrice) * 100;
+                    }
+                });
+            });
+            
+            return realizedPnL + unrealizedPnL;
+        }
+        
+        // 更新排行榜
+        function updateLeaderboard() {
+            loadAllUsersForLeaderboard();
+            
+            // 排序獲取前三名
+            const sortedUsers = Object.values(allUsersData)
+                .sort((a, b) => b.totalProfit - a.totalProfit)
+                .slice(0, 3);
+            
+            // 更新顯示
+            for (let i = 0; i < 3; i++) {
+                const leaderId = `leader-${i + 1}`;
+                const leaderAmountId = `leader-${i + 1}-amount`;
+                
+                if (sortedUsers[i]) {
+                    document.getElementById(leaderId).textContent = sortedUsers[i].userId;
+                    document.getElementById(leaderAmountId).textContent = `$${sortedUsers[i].totalProfit.toFixed(2)}`;
+                } else {
+                    document.getElementById(leaderId).textContent = '-';
+                    document.getElementById(leaderAmountId).textContent = '$0.00';
+                }
+            }
+            
+            // 更新當前用戶的總盈利
+            if (dashboardData.userId) {
+                const currentUserProfit = calculateUserTotalProfit(dashboardData);
+                document.getElementById('user-total-profit').textContent = `$${currentUserProfit.toFixed(2)}`;
+            }
         }
         
         // 載入價格
@@ -878,8 +1148,16 @@ flowchart TD
         
         // 添加資金
         function addCapital() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             const amount = parseFloat(document.getElementById('add-capital').value);
             if (amount > 0) {
+                // 保存快照
+                saveOperationSnapshot('addCapital', {amount: amount});
+                
                 if (!dashboardData.capitalAdditions) {
                     dashboardData.capitalAdditions = [];
                 }
@@ -900,6 +1178,11 @@ flowchart TD
         
         // 新增股票
         function addNewStock() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             const symbol = document.getElementById('stock-symbol').value.trim().toUpperCase();
             if (!symbol) {
                 alert('請輸入股票代號');
@@ -911,6 +1194,9 @@ flowchart TD
             }
             
             if (!dashboardData.stocks[symbol]) {
+                // 保存快照
+                saveOperationSnapshot('addStock', {symbol: symbol});
+                
                 dashboardData.stocks[symbol] = {
                     operations: [],
                     calls: [],
@@ -951,15 +1237,102 @@ flowchart TD
             return dashboardData.stocks[currentStock];
         }
 
-        // 保存數據到localStorage
+        // 保存數據到localStorage（按用戶保存）
         function saveData() {
-            localStorage.setItem('tradingDashboard', JSON.stringify(dashboardData));
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
+            const userKey = `trading_user_${dashboardData.userId}`;
+            const userData = localStorage.getItem(userKey);
+            
+            if (userData) {
+                const parsed = JSON.parse(userData);
+                parsed.dashboardData = dashboardData;
+                parsed.updatedAt = new Date().toISOString();
+                localStorage.setItem(userKey, JSON.stringify(parsed));
+            } else {
+                // 如果沒有用戶數據，創建新的
+                const newUserData = {
+                    password: '',  // 密碼不會在這裡更新
+                    dashboardData: dashboardData,
+                    updatedAt: new Date().toISOString()
+                };
+                localStorage.setItem(userKey, JSON.stringify(newUserData));
+            }
+            
             savePrices();
+            updateLeaderboard();
             alert('數據已保存！');
+        }
+        
+        // 保存操作快照（用於撤銷）
+        function saveOperationSnapshot(operationType, operationData) {
+            if (operationHistory.length >= maxHistorySize) {
+                operationHistory.shift(); // 移除最舊的操作
+            }
+            
+            // 創建當前狀態的深拷貝
+            const snapshot = JSON.parse(JSON.stringify({
+                dashboardData: JSON.parse(JSON.stringify(dashboardData)),
+                currentStock: currentStock,
+                currentPrices: JSON.parse(JSON.stringify(currentPrices))
+            }));
+            
+            operationHistory.push({
+                type: operationType,
+                data: operationData,
+                snapshot: snapshot,
+                timestamp: Date.now()
+            });
+            
+            // 更新撤銷按鈕狀態
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                undoBtn.disabled = false;
+            }
+        }
+        
+        // 撤銷上一步操作
+        function undoLastOperation() {
+            if (operationHistory.length === 0) {
+                alert('沒有可撤銷的操作');
+                return;
+            }
+            
+            const lastOperation = operationHistory.pop();
+            
+            // 恢復快照
+            dashboardData = JSON.parse(JSON.stringify(lastOperation.snapshot.dashboardData));
+            currentStock = lastOperation.snapshot.currentStock;
+            currentPrices = JSON.parse(JSON.stringify(lastOperation.snapshot.currentPrices));
+            
+            // 更新顯示
+            updateStockSelect();
+            if (currentStock) {
+                document.getElementById('stock-select').value = currentStock;
+            }
+            updateDisplay();
+            updateAvailableCash();
+            saveData();
+            
+            // 更新撤銷按鈕狀態
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                undoBtn.disabled = operationHistory.length === 0;
+            }
+            
+            alert(`已撤銷：${lastOperation.type}`);
         }
 
         // 添加買入操作
         function addBuyOperation() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇或新增股票');
                 return;
@@ -974,23 +1347,34 @@ flowchart TD
                 return;
             }
 
-            stockData.operations.push({
+            const operation = {
                 type: 'buy',
                 shares: shares,
                 price: price,
                 date: new Date().toLocaleDateString('zh-TW'),
                 id: Date.now(),
                 symbol: currentStock
-            });
+            };
+
+            // 保存快照
+            saveOperationSnapshot('buy', operation);
+
+            stockData.operations.push(operation);
 
             document.getElementById('buy-shares').value = '';
             document.getElementById('buy-price').value = '';
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
 
         // 添加賣出操作
         function addSellOperation() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇或新增股票');
                 return;
@@ -1005,23 +1389,34 @@ flowchart TD
                 return;
             }
 
-            stockData.operations.push({
+            const operation = {
                 type: 'sell',
                 shares: shares,
                 price: price,
                 date: new Date().toLocaleDateString('zh-TW'),
                 id: Date.now(),
                 symbol: currentStock
-            });
+            };
+
+            // 保存快照
+            saveOperationSnapshot('sell', operation);
+
+            stockData.operations.push(operation);
 
             document.getElementById('sell-shares').value = '';
             document.getElementById('sell-price').value = '';
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
 
         // 添加賣Call操作
         function addCallOperation() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇或新增股票');
                 return;
@@ -1037,7 +1432,7 @@ flowchart TD
                 return;
             }
 
-            stockData.calls.push({
+            const call = {
                 strike: strike,
                 premium: premium,
                 expiry: expiry,
@@ -1046,7 +1441,12 @@ flowchart TD
                 closed: false,
                 symbol: currentStock,
                 exercised: false
-            });
+            };
+
+            // 保存快照
+            saveOperationSnapshot('sellCall', call);
+
+            stockData.calls.push(call);
 
             document.getElementById('call-strike').value = '';
             document.getElementById('call-premium').value = '';
@@ -1054,10 +1454,16 @@ flowchart TD
             updateStockSelect();
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
 
         // 添加買入Call操作（平倉）
         function addBuyCallOperation() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇或新增股票');
                 return;
@@ -1072,6 +1478,11 @@ flowchart TD
                 alert('請輸入完整的Call信息');
                 return;
             }
+
+            const operationData = {strike, premium, expiry, symbol: currentStock};
+
+            // 保存快照
+            saveOperationSnapshot('buyCall', operationData);
 
             // 尋找匹配的賣Call來平倉
             const matchingCall = stockData.calls.find(c => 
@@ -1103,10 +1514,16 @@ flowchart TD
             updateStockSelect();
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
 
         // 添加賣Put操作
         function addPutOperation() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇或新增股票');
                 return;
@@ -1122,7 +1539,7 @@ flowchart TD
                 return;
             }
 
-            stockData.puts.push({
+            const put = {
                 strike: strike,
                 premium: premium,
                 expiry: expiry,
@@ -1131,17 +1548,28 @@ flowchart TD
                 closed: false,
                 symbol: currentStock,
                 exercised: false
-            });
+            };
+
+            // 保存快照
+            saveOperationSnapshot('sellPut', put);
+
+            stockData.puts.push(put);
 
             document.getElementById('put-strike').value = '';
             document.getElementById('put-premium').value = '';
             document.getElementById('put-expiry').value = '';
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
 
         // 添加買入Put操作（平倉）
         function addBuyPutOperation() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇或新增股票');
                 return;
@@ -1156,6 +1584,11 @@ flowchart TD
                 alert('請輸入完整的Put信息');
                 return;
             }
+
+            const operationData = {strike, premium, expiry, symbol: currentStock};
+
+            // 保存快照
+            saveOperationSnapshot('buyPut', operationData);
 
             // 尋找匹配的賣Put來平倉
             const matchingPut = stockData.puts.find(p => 
@@ -1186,10 +1619,16 @@ flowchart TD
             document.getElementById('buy-put-expiry').value = '';
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
         
         // Call被行使
         function exerciseCall() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇股票');
                 return;
@@ -1213,6 +1652,9 @@ flowchart TD
                 return;
             }
             
+            // 保存快照
+            saveOperationSnapshot('exerciseCall', {symbol, callId, exercisePrice});
+            
             // 標記為已行使
             call.exercised = true;
             call.exercisePrice = exercisePrice;
@@ -1234,10 +1676,16 @@ flowchart TD
             updateStockSelect();
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
         
         // Put被行使
         function exercisePut() {
+            if (!dashboardData.userId) {
+                alert('請先登錄');
+                return;
+            }
+            
             if (!currentStock) {
                 alert('請先選擇股票');
                 return;
@@ -1262,6 +1710,9 @@ flowchart TD
                 return;
             }
             
+            // 保存快照
+            saveOperationSnapshot('exercisePut', {strike, exercisePrice, symbol: currentStock});
+            
             // 標記為已行使
             put.exercised = true;
             put.exercisePrice = exercisePrice;
@@ -1281,6 +1732,7 @@ flowchart TD
             alert(`${currentStock} $${put.strike} Put已被行使，已自動買入100股 @ $${put.strike}`);
             updateAvailableCash();
             updateDisplay();
+            saveData();
         }
         
         // 更新股價
@@ -2007,6 +2459,9 @@ flowchart TD
                     document.getElementById('current-stock-price').value = currentPrices.stocks[currentStock].stock;
                 }
             }
+            
+            // 初始化時更新排行榜
+            updateLeaderboard();
         });
 
         // 保存價格到localStorage
