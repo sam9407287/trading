@@ -731,7 +731,7 @@
             let holdingValue = 0;
             let unrealizedPnL = 0;
             
-            // 計算股票部分
+            // 計算股票部分（資產價值和損益）
             for (const symbol in userData.holdings) {
                 const holding = userData.holdings[symbol];
                 totalShares += holding.shares;
@@ -748,17 +748,20 @@
                 }
             }
             
-            // 計算期權部分
+            // 計算期權部分 - 資產總價值中不包括期權本身，只在有實時價格更新時才計算損益
             for (const optionKey in userData.options) {
                 const option = userData.options[optionKey];
-                const currentPrice = userData.holdingPrices[optionKey] !== undefined ? userData.holdingPrices[optionKey] : option.premium;
+                const currentPrice = userData.holdingPrices[optionKey];
                 
-                if (option.quantity > 0) {
-                    // 買入期權
-                    unrealizedPnL += (currentPrice - option.premium) * option.quantity * 100;
-                } else {
-                    // 賣出期權
-                    unrealizedPnL += (option.premium - currentPrice) * Math.abs(option.quantity) * 100;
+                // 只有當實時價格被更新時，才計算未實現損益
+                if (currentPrice !== undefined) {
+                    if (option.quantity > 0) {
+                        // 買入期權 - 當前價格越高越虧
+                        unrealizedPnL += (option.premium - currentPrice) * option.quantity * 100;
+                    } else {
+                        // 賣出期權 - 當前價格越低越賺
+                        unrealizedPnL += (currentPrice - option.premium) * Math.abs(option.quantity) * 100;
+                    }
                 }
             }
             
