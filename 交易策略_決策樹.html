@@ -260,9 +260,6 @@
                         <label style="display: block; margin-bottom: 5px; font-weight: 500;">初始資金</label>
                         <input type="number" id="initial-capital" placeholder="例如: 10000" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                         <button onclick="setInitialCapital()" style="width: 100%; margin-top: 5px; padding: 8px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💰 設定初始資金</button>
-                        <div style="margin-top: 10px; font-size: 0.9em;">
-                            <strong>可用資金：</strong><span id="available-cash" style="color: #4caf50; font-weight: bold;">$0.00</span>
-                        </div>
                     </div>
                     
                     <div style="margin-bottom: 15px;">
@@ -379,6 +376,9 @@
                         </div>
                         <div style="padding: 15px; background: #f3e5f5; border-radius: 8px; margin-top: 10px;">
                             <strong>總資產價值：</strong><span id="total-assets" style="font-weight: bold; color: #9c27b0;">$0.00</span>
+                        </div>
+                        <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; margin-top: 10px;">
+                            <strong>可用資金：</strong><span id="available-cash" style="color: #4caf50; font-weight: bold;">$0.00</span>
                         </div>
                     </div>
                     
@@ -785,17 +785,34 @@ flowchart TD
         function loadData() {
             const saved = localStorage.getItem('tradingDashboard');
             if (saved) {
-                const loaded = JSON.parse(saved);
-                dashboardData = loaded;
-                if (loaded.initialCapital) {
-                    document.getElementById('initial-capital').value = loaded.initialCapital;
+                try {
+                    const loaded = JSON.parse(saved);
+                    dashboardData = loaded;
+                    if (!dashboardData.stocks) {
+                        dashboardData.stocks = {};
+                    }
+                    if (loaded.initialCapital) {
+                        document.getElementById('initial-capital').value = loaded.initialCapital;
+                    }
+                    updateStockSelect();
+                    if (Object.keys(dashboardData.stocks).length > 0) {
+                        currentStock = Object.keys(dashboardData.stocks)[0];
+                        document.getElementById('stock-select').value = currentStock;
+                        updateDisplay();
+                    }
+                    updateAvailableCash();
+                } catch (e) {
+                    console.error('載入數據失敗:', e);
+                    dashboardData = {
+                        initialCapital: 0,
+                        stocks: {}
+                    };
                 }
-                updateStockSelect();
-                if (Object.keys(dashboardData.stocks).length > 0) {
-                    currentStock = Object.keys(dashboardData.stocks)[0];
-                    document.getElementById('stock-select').value = currentStock;
-                    updateDisplay();
-                }
+            } else {
+                dashboardData = {
+                    initialCapital: 0,
+                    stocks: {}
+                };
             }
             loadPrices();
         }
@@ -814,8 +831,14 @@ flowchart TD
             const callSelect = document.getElementById('exercise-call-select');
             const currentValue = select.value;
             
+            if (!select || !callSelect) return;
+            
             select.innerHTML = '<option value="">-- 選擇股票 --</option>';
             callSelect.innerHTML = '<option value="">選擇被行使的Call</option>';
+            
+            if (!dashboardData.stocks) {
+                dashboardData.stocks = {};
+            }
             
             Object.keys(dashboardData.stocks).forEach(symbol => {
                 const option = document.createElement('option');
@@ -825,13 +848,15 @@ flowchart TD
                 
                 // 更新Call選擇框
                 const stock = dashboardData.stocks[symbol];
-                const openCalls = stock.calls.filter(c => !c.closed);
-                openCalls.forEach(call => {
-                    const callOption = document.createElement('option');
-                    callOption.value = `${symbol}_${call.id}`;
-                    callOption.textContent = `${symbol} $${call.strike} Call (${call.expiry})`;
-                    callSelect.appendChild(callOption);
-                });
+                if (stock && stock.calls) {
+                    const openCalls = stock.calls.filter(c => !c.closed && !c.exercised);
+                    openCalls.forEach(call => {
+                        const callOption = document.createElement('option');
+                        callOption.value = `${symbol}_${call.id}`;
+                        callOption.textContent = `${symbol} $${call.strike} Call (${call.expiry})`;
+                        callSelect.appendChild(callOption);
+                    });
+                }
             });
             
             if (currentValue && dashboardData.stocks[currentValue]) {
@@ -844,6 +869,7 @@ flowchart TD
             const capital = parseFloat(document.getElementById('initial-capital').value);
             if (capital > 0) {
                 dashboardData.initialCapital = capital;
+                updateAvailableCash();
                 updateDisplay();
                 saveData();
                 alert('初始資金已設定！');
@@ -860,6 +886,10 @@ flowchart TD
                 return;
             }
             
+            if (!dashboardData.stocks) {
+                dashboardData.stocks = {};
+            }
+            
             if (!dashboardData.stocks[symbol]) {
                 dashboardData.stocks[symbol] = {
                     operations: [],
@@ -874,8 +904,13 @@ flowchart TD
                 document.getElementById('stock-symbol').value = '';
                 updateDisplay();
                 saveData();
+                alert(`股票 ${symbol} 已成功新增！`);
             } else {
-                alert('該股票已存在，請從下拉選單選擇');
+                // 如果已存在，直接選擇它
+                currentStock = symbol;
+                document.getElementById('stock-select').value = symbol;
+                updateDisplay();
+                alert(`股票 ${symbol} 已存在，已切換到該股票`);
             }
         }
         
@@ -930,6 +965,7 @@ flowchart TD
 
             document.getElementById('buy-shares').value = '';
             document.getElementById('buy-price').value = '';
+            updateAvailableCash();
             updateDisplay();
         }
 
@@ -960,6 +996,7 @@ flowchart TD
 
             document.getElementById('sell-shares').value = '';
             document.getElementById('sell-price').value = '';
+            updateAvailableCash();
             updateDisplay();
         }
 
@@ -995,6 +1032,7 @@ flowchart TD
             document.getElementById('call-premium').value = '';
             document.getElementById('call-expiry').value = '';
             updateStockSelect();
+            updateAvailableCash();
             updateDisplay();
         }
 
@@ -1043,6 +1081,7 @@ flowchart TD
             document.getElementById('buy-call-premium').value = '';
             document.getElementById('buy-call-expiry').value = '';
             updateStockSelect();
+            updateAvailableCash();
             updateDisplay();
         }
 
@@ -1077,6 +1116,7 @@ flowchart TD
             document.getElementById('put-strike').value = '';
             document.getElementById('put-premium').value = '';
             document.getElementById('put-expiry').value = '';
+            updateAvailableCash();
             updateDisplay();
         }
 
@@ -1124,6 +1164,7 @@ flowchart TD
             document.getElementById('buy-put-strike').value = '';
             document.getElementById('buy-put-premium').value = '';
             document.getElementById('buy-put-expiry').value = '';
+            updateAvailableCash();
             updateDisplay();
         }
         
@@ -1171,6 +1212,7 @@ flowchart TD
             alert(`${symbol} $${call.strike} Call已被行使，已自動賣出100股 @ $${call.strike}`);
             document.getElementById('exercise-price').value = '';
             updateStockSelect();
+            updateAvailableCash();
             updateDisplay();
         }
         
@@ -1217,6 +1259,7 @@ flowchart TD
             });
             
             alert(`${currentStock} $${put.strike} Put已被行使，已自動買入100股 @ $${put.strike}`);
+            updateAvailableCash();
             updateDisplay();
         }
         
@@ -1334,9 +1377,11 @@ flowchart TD
         
         // 更新可用資金
         function updateAvailableCash() {
+            if (!dashboardData.stocks) {
+                dashboardData.stocks = {};
+            }
+            
             let totalCash = dashboardData.initialCapital || 0;
-            let totalStockValue = 0;
-            let totalOptionPremium = 0;
             
             // 計算所有股票的現金流
             Object.keys(dashboardData.stocks).forEach(symbol => {
@@ -1351,26 +1396,41 @@ flowchart TD
                     }
                 });
                 
-                // 期權權利金
+                // 期權權利金（賣出時收到權利金，買回時支付）
                 stock.calls.forEach(call => {
                     if (!call.closed && !call.exercised) {
-                        totalOptionPremium += call.premium * 100;
+                        // 未平倉的賣Call，已收到權利金
+                        totalCash += call.premium * 100;
                     } else if (call.closed) {
-                        totalOptionPremium += (call.premium - call.closePrice) * 100;
+                        // 已平倉，計算淨損益
+                        totalCash += (call.premium - call.closePrice) * 100;
                     }
                 });
                 
                 stock.puts.forEach(put => {
                     if (!put.closed && !put.exercised) {
-                        totalOptionPremium += put.premium * 100;
+                        // 未平倉的賣Put，已收到權利金
+                        totalCash += put.premium * 100;
                     } else if (put.closed) {
-                        totalOptionPremium += (put.premium - put.closePrice) * 100;
+                        // 已平倉，計算淨損益
+                        totalCash += (put.premium - put.closePrice) * 100;
                     }
+                });
+                
+                // 買入的Call/Put（開倉時支付權利金）
+                stock.buyCalls.forEach(buyCall => {
+                    totalCash -= buyCall.premium * 100;
+                });
+                
+                stock.buyPuts.forEach(buyPut => {
+                    totalCash -= buyPut.premium * 100;
                 });
             });
             
-            totalCash += totalOptionPremium;
-            document.getElementById('available-cash').textContent = `$${totalCash.toFixed(2)}`;
+            const cashElement = document.getElementById('available-cash');
+            if (cashElement) {
+                cashElement.textContent = `$${totalCash.toFixed(2)}`;
+            }
         }
 
         // 更新未平倉持倉顯示
