@@ -770,7 +770,8 @@
                         shares: holding.shares,
                         avgCost: holding.avgCost,
                         value: holding.shares * holding.avgCost,
-                        isShort: holding.shares < 0
+                        isShort: holding.shares < 0,
+                        type: 'stock'
                     });
                 }
             }
@@ -779,11 +780,14 @@
             for (const optionKey in userData.options) {
                 const option = userData.options[optionKey];
                 holdings.push({
+                    key: optionKey,
                     symbol: `${option.symbol} ${option.type.toUpperCase()} @ $${option.strikePrice}`,
                     shares: option.quantity,
+                    premium: option.premium,
                     value: option.premium * Math.abs(option.quantity) * 100,
                     isOption: true,
-                    isShort: option.quantity < 0
+                    isShort: option.quantity < 0,
+                    type: 'option'
                 });
             }
             
@@ -793,26 +797,84 @@
             }
             
             let html = '';
-            holdings.forEach(h => {
+            holdings.forEach((h, idx) => {
                 let className = 'holding-item';
                 if (h.isOption) className += ' option';
                 else if (h.isShort) className += ' short';
                 
                 const label = h.isShort ? '空頭' : (h.isOption ? '期權' : '多頭');
+                const inputId = `price-input-${idx}`;
+                const priceDisplayId = `price-display-${idx}`;
+                const pnlId = `pnl-${idx}`;
+                
                 html += `
                     <div class="${className}">
                         <div>
                             <strong>${h.symbol}</strong><br>
-                            ${label}: ${h.shares} ${h.isOption ? '份' : '股'} @ $${(Math.abs(h.shares) > 0 ? h.value / Math.abs(h.shares) : 0).toFixed(2)}
+                            ${label}: ${h.shares} ${h.isOption ? '份' : '股'} @ $${(Math.abs(h.shares) > 0 ? h.value / Math.abs(h.shares) : 0).toFixed(2)}<br>
+                            <div style="margin-top: 8px; font-size: 12px;">
+                                當前價格: <input type="number" id="${inputId}" step="0.01" min="0" placeholder="輸入價格" style="width: 80px; padding: 4px; font-size: 12px;">
+                                <button onclick="updatePriceDisplay(${idx}, '${h.type}', '${h.key || h.symbol}')" style="padding: 4px 10px; cursor: pointer; font-size: 12px; background: #3498db; color: white; border: none; border-radius: 3px;">更新</button>
+                            </div>
+                            <div id="${pnlId}" style="margin-top: 5px; font-size: 12px; font-weight: bold; color: ${h.isShort ? '#27ae60' : '#e74c3c'};">未實現損益: 未更新</div>
                         </div>
                         <div style="text-align: right;">
-                            $${h.value.toFixed(2)}
+                            $${h.value.toFixed(2)}<br>
+                            <span id="${priceDisplayId}" style="font-size: 12px; color: #7f8c8d;">--</span>
                         </div>
                     </div>
                 `;
             });
             
             holdingsDiv.innerHTML = html;
+        }
+        
+        // 更新持倉價格和損益
+        function updatePriceDisplay(idx, type, key) {
+            const inputId = `price-input-${idx}`;
+            const priceDisplayId = `price-display-${idx}`;
+            const pnlId = `pnl-${idx}`;
+            
+            const currentPrice = parseFloat(document.getElementById(inputId).value);
+            if (!currentPrice || currentPrice < 0) {
+                alert('請輸入正確的價格');
+                return;
+            }
+            
+            let pnl = 0;
+            let label = '';
+            
+            if (type === 'stock') {
+                const holding = userData.holdings[key];
+                if (holding.shares > 0) {
+                    // 多頭
+                    pnl = (currentPrice - holding.avgCost) * holding.shares;
+                    label = pnl >= 0 ? '+' : '';
+                } else {
+                    // 空頭 - 反向計算
+                    pnl = (holding.avgCost - currentPrice) * Math.abs(holding.shares);
+                    label = pnl >= 0 ? '+' : '';
+                }
+            } else if (type === 'option') {
+                const option = userData.options[key];
+                if (option.quantity > 0) {
+                    // 買入期權 - 當前價格越低越虧
+                    pnl = (currentPrice - option.premium) * option.quantity * 100;
+                    label = pnl >= 0 ? '+' : '';
+                } else {
+                    // 賣出期權 - 當前價格越低越賺
+                    pnl = (option.premium - currentPrice) * Math.abs(option.quantity) * 100;
+                    label = pnl >= 0 ? '+' : '';
+                }
+            }
+            
+            const priceDisplay = document.getElementById(priceDisplayId);
+            const pnlDisplay = document.getElementById(pnlId);
+            
+            priceDisplay.textContent = `當前: $${currentPrice.toFixed(2)}`;
+            const pnlColor = pnl >= 0 ? '#27ae60' : '#e74c3c';
+            pnlDisplay.innerHTML = `未實現損益: <span style="color: ${pnlColor};">${label}$${Math.abs(pnl).toFixed(2)}</span>`;
+            pnlDisplay.style.color = pnlColor;
         }
         
         // 更新操作記錄
@@ -874,3 +936,4 @@
     </script>
 </body>
 </html>
+
