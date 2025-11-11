@@ -1594,7 +1594,7 @@
 
             const avgCost = totalShares > 0 ? (totalCost / totalShares).toFixed(2) : 0;
 
-            // 更新狀態顯示
+            // 更新狀態顯示（支持顯示負數空頭）
             document.getElementById('total-shares').textContent = totalShares;
             document.getElementById('avg-cost').textContent = avgCost;
 
