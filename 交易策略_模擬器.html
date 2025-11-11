@@ -292,6 +292,10 @@
                 <div class="section">
                     <h2>📊 期權操作</h2>
                     <div class="form-group">
+                        <label>股票代號</label>
+                        <input type="text" id="option-symbol" placeholder="例如: AAPL">
+                    </div>
+                    <div class="form-group">
                         <label>期權類型</label>
                         <select id="option-type">
                             <option value="call">Call（看漲）</option>
@@ -538,7 +542,7 @@
                 return;
             }
             
-            const symbol = document.getElementById('stock-symbol').value.trim().toUpperCase();
+            const symbol = document.getElementById('option-symbol').value.trim().toUpperCase();
             const optionType = document.getElementById('option-type').value;
             const action = document.getElementById('option-action').value;
             const strikePrice = parseFloat(document.getElementById('strike-price').value);
@@ -585,6 +589,7 @@
                 date: new Date().toLocaleString('zh-TW')
             });
             
+            document.getElementById('option-symbol').value = '';
             document.getElementById('strike-price').value = '';
             document.getElementById('premium').value = '';
             document.getElementById('expiry-date').value = '';
