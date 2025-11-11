@@ -194,6 +194,51 @@
                 font-size: 14px;
             }
         }
+        
+        @media (max-width: 768px) {
+            /* 未平倉持倉區域響應式 */
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* 輸入區域響應式 */
+            div[style*="grid-template-columns: 2fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            div[style*="grid-template-columns: 1fr 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            
+            /* 按鈕響應式 */
+            div[style*="grid-template-columns: 1fr 1fr"] button {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            input, button {
+                font-size: 14px !important;
+                padding: 8px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -217,7 +262,7 @@
                     </div>
                     
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入操作</label>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入股票</label>
                         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
                             <input type="number" id="buy-shares" placeholder="股數" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                             <input type="number" id="buy-price" placeholder="價格" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
@@ -226,7 +271,16 @@
                     </div>
                     
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出 Call 操作</label>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出股票</label>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                            <input type="number" id="sell-shares" placeholder="股數" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="number" id="sell-price" placeholder="價格" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <button onclick="addSellOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➖ 添加賣出</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出 Call（開倉）</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                             <input type="number" id="call-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                             <input type="number" id="call-premium" placeholder="權利金" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
@@ -236,13 +290,33 @@
                     </div>
                     
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出 Put 操作</label>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入 Call（平倉）</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <input type="number" id="buy-call-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="number" id="buy-call-premium" placeholder="買回價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="date" id="buy-call-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <button onclick="addBuyCallOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➖ 買回 Call</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">賣出 Put（開倉）</label>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                             <input type="number" id="put-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                             <input type="number" id="put-premium" placeholder="權利金" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                             <input type="date" id="put-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                         </div>
                         <button onclick="addPutOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➕ 添加賣 Put</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">買入 Put（平倉）</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <input type="number" id="buy-put-strike" placeholder="行權價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="number" id="buy-put-premium" placeholder="買回價" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <input type="date" id="buy-put-expiry" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <button onclick="addBuyPutOperation()" style="width: 100%; margin-top: 10px; padding: 10px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">➖ 買回 Put</button>
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -265,14 +339,55 @@
                         <div style="padding: 15px; background: #e8f5e9; border-radius: 8px; margin-bottom: 10px;">
                             <strong>當前階段：</strong><span id="current-stage">未開始</span>
                         </div>
-                        <div style="padding: 15px; background: #fce4ec; border-radius: 8px;">
+                        <div style="padding: 15px; background: #fce4ec; border-radius: 8px; margin-bottom: 10px;">
                             <strong>決策樹節點：</strong><span id="decision-node">等待輸入數據</span>
+                        </div>
+                        <div style="padding: 15px; background: #fff9c4; border-radius: 8px; margin-bottom: 10px;">
+                            <strong>已實現損益：</strong><span id="realized-pnl" style="font-weight: bold;">$0.00</span>
+                        </div>
+                        <div style="padding: 15px; background: #e1f5ff; border-radius: 8px;">
+                            <strong>未實現損益：</strong><span id="unrealized-pnl" style="font-weight: bold;">$0.00</span>
                         </div>
                     </div>
                     
                     <h4 style="color: #2c3e50; margin: 20px 0 10px 0;">📋 本週任務清單</h4>
-                    <div id="task-list" style="min-height: 100px;">
+                    <div id="task-list" style="min-height: 100px; margin-bottom: 20px;">
                         <p style="color: #999; font-style: italic;">請輸入持倉數據以生成任務</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 未平倉持倉顯示 -->
+            <div style="margin-top: 20px; background: rgba(255,255,255,0.95); color: #2c3e50; padding: 20px; border-radius: 8px;">
+                <h3 style="color: #2c3e50; margin-bottom: 15px;">📊 未平倉持倉與即時價格</h3>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                    <!-- 股票持倉 -->
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px;">股票持倉</h4>
+                        <div id="stock-positions" style="min-height: 50px;">
+                            <p style="color: #999; font-style: italic; font-size: 0.9em;">無股票持倉</p>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 0.9em; font-weight: 500;">即時股價</label>
+                            <input type="number" id="current-stock-price" placeholder="輸入即時股價" step="0.01" onchange="updatePnL(); savePrices();" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Call持倉 -->
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Call持倉</h4>
+                        <div id="call-positions" style="min-height: 50px;">
+                            <p style="color: #999; font-style: italic; font-size: 0.9em;">無Call持倉</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Put持倉 -->
+                    <div>
+                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Put持倉</h4>
+                        <div id="put-positions" style="min-height: 50px;">
+                            <p style="color: #999; font-style: italic; font-size: 0.9em;">無Put持倉</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -616,7 +731,15 @@ flowchart TD
             stockSymbol: '',
             operations: [],
             calls: [],
-            puts: []
+            puts: [],
+            buyCalls: [],  // 買入的Call（平倉）
+            buyPuts: []    // 買入的Put（平倉）
+        };
+        
+        let currentPrices = {
+            stock: 0,
+            calls: {},  // {strike_expiry: price}
+            puts: {}    // {strike_expiry: price}
         };
 
         // 從localStorage載入數據
@@ -631,6 +754,7 @@ flowchart TD
         // 保存數據到localStorage
         function saveData() {
             localStorage.setItem('tradingDashboard', JSON.stringify(dashboardData));
+            savePrices();
             alert('數據已保存！');
         }
 
@@ -648,11 +772,35 @@ flowchart TD
                 type: 'buy',
                 shares: shares,
                 price: price,
-                date: new Date().toLocaleDateString('zh-TW')
+                date: new Date().toLocaleDateString('zh-TW'),
+                id: Date.now()
             });
 
             document.getElementById('buy-shares').value = '';
             document.getElementById('buy-price').value = '';
+            updateDisplay();
+        }
+
+        // 添加賣出操作
+        function addSellOperation() {
+            const shares = parseInt(document.getElementById('sell-shares').value);
+            const price = parseFloat(document.getElementById('sell-price').value);
+            
+            if (!shares || !price) {
+                alert('請輸入完整的賣出信息');
+                return;
+            }
+
+            dashboardData.operations.push({
+                type: 'sell',
+                shares: shares,
+                price: price,
+                date: new Date().toLocaleDateString('zh-TW'),
+                id: Date.now()
+            });
+
+            document.getElementById('sell-shares').value = '';
+            document.getElementById('sell-price').value = '';
             updateDisplay();
         }
 
@@ -671,12 +819,53 @@ flowchart TD
                 strike: strike,
                 premium: premium,
                 expiry: expiry,
-                date: new Date().toLocaleDateString('zh-TW')
+                date: new Date().toLocaleDateString('zh-TW'),
+                id: Date.now(),
+                closed: false
             });
 
             document.getElementById('call-strike').value = '';
             document.getElementById('call-premium').value = '';
             document.getElementById('call-expiry').value = '';
+            updateDisplay();
+        }
+
+        // 添加買入Call操作（平倉）
+        function addBuyCallOperation() {
+            const strike = parseFloat(document.getElementById('buy-call-strike').value);
+            const premium = parseFloat(document.getElementById('buy-call-premium').value);
+            const expiry = document.getElementById('buy-call-expiry').value;
+            
+            if (!strike || !premium || !expiry) {
+                alert('請輸入完整的Call信息');
+                return;
+            }
+
+            // 尋找匹配的賣Call來平倉
+            const matchingCall = dashboardData.calls.find(c => 
+                !c.closed && 
+                Math.abs(c.strike - strike) < 0.01 && 
+                c.expiry === expiry
+            );
+
+            if (matchingCall) {
+                matchingCall.closed = true;
+                matchingCall.closePrice = premium;
+                matchingCall.closeDate = new Date().toLocaleDateString('zh-TW');
+            } else {
+                // 如果沒有匹配的，記錄為買入Call（可能是新的開倉）
+                dashboardData.buyCalls.push({
+                    strike: strike,
+                    premium: premium,
+                    expiry: expiry,
+                    date: new Date().toLocaleDateString('zh-TW'),
+                    id: Date.now()
+                });
+            }
+
+            document.getElementById('buy-call-strike').value = '';
+            document.getElementById('buy-call-premium').value = '';
+            document.getElementById('buy-call-expiry').value = '';
             updateDisplay();
         }
 
@@ -695,12 +884,53 @@ flowchart TD
                 strike: strike,
                 premium: premium,
                 expiry: expiry,
-                date: new Date().toLocaleDateString('zh-TW')
+                date: new Date().toLocaleDateString('zh-TW'),
+                id: Date.now(),
+                closed: false
             });
 
             document.getElementById('put-strike').value = '';
             document.getElementById('put-premium').value = '';
             document.getElementById('put-expiry').value = '';
+            updateDisplay();
+        }
+
+        // 添加買入Put操作（平倉）
+        function addBuyPutOperation() {
+            const strike = parseFloat(document.getElementById('buy-put-strike').value);
+            const premium = parseFloat(document.getElementById('buy-put-premium').value);
+            const expiry = document.getElementById('buy-put-expiry').value;
+            
+            if (!strike || !premium || !expiry) {
+                alert('請輸入完整的Put信息');
+                return;
+            }
+
+            // 尋找匹配的賣Put來平倉
+            const matchingPut = dashboardData.puts.find(p => 
+                !p.closed && 
+                Math.abs(p.strike - strike) < 0.01 && 
+                p.expiry === expiry
+            );
+
+            if (matchingPut) {
+                matchingPut.closed = true;
+                matchingPut.closePrice = premium;
+                matchingPut.closeDate = new Date().toLocaleDateString('zh-TW');
+            } else {
+                // 如果沒有匹配的，記錄為買入Put（可能是新的開倉）
+                dashboardData.buyPuts.push({
+                    strike: strike,
+                    premium: premium,
+                    expiry: expiry,
+                    date: new Date().toLocaleDateString('zh-TW'),
+                    id: Date.now()
+                });
+            }
+
+            document.getElementById('buy-put-strike').value = '';
+            document.getElementById('buy-put-premium').value = '';
+            document.getElementById('buy-put-expiry').value = '';
             updateDisplay();
         }
 
@@ -711,9 +941,17 @@ flowchart TD
                     stockSymbol: '',
                     operations: [],
                     calls: [],
-                    puts: []
+                    puts: [],
+                    buyCalls: [],
+                    buyPuts: []
+                };
+                currentPrices = {
+                    stock: 0,
+                    calls: {},
+                    puts: {}
                 };
                 document.getElementById('stock-symbol').value = '';
+                document.getElementById('current-stock-price').value = '';
                 localStorage.removeItem('tradingDashboard');
                 updateDisplay();
             }
@@ -727,14 +965,31 @@ flowchart TD
                 dashboardData.stockSymbol = symbol;
             }
 
-            // 計算總持股數和平均成本
+            // 計算總持股數和平均成本（使用FIFO方法）
             let totalShares = 0;
             let totalCost = 0;
+            let buyQueue = [];
             
             dashboardData.operations.forEach(op => {
                 if (op.type === 'buy') {
+                    buyQueue.push({shares: op.shares, price: op.price});
                     totalShares += op.shares;
                     totalCost += op.shares * op.price;
+                } else if (op.type === 'sell') {
+                    let remaining = op.shares;
+                    while (remaining > 0 && buyQueue.length > 0) {
+                        if (buyQueue[0].shares <= remaining) {
+                            remaining -= buyQueue[0].shares;
+                            totalCost -= buyQueue[0].shares * buyQueue[0].price;
+                            totalShares -= buyQueue[0].shares;
+                            buyQueue.shift();
+                        } else {
+                            totalCost -= remaining * buyQueue[0].price;
+                            totalShares -= remaining;
+                            buyQueue[0].shares -= remaining;
+                            remaining = 0;
+                        }
+                    }
                 }
             });
 
@@ -745,18 +1000,179 @@ flowchart TD
             document.getElementById('avg-cost').textContent = avgCost;
 
             // 判斷當前階段和決策樹節點
-            const stage = determineStage(totalShares, dashboardData.calls, dashboardData.puts);
+            const openCalls = dashboardData.calls.filter(c => !c.closed);
+            const openPuts = dashboardData.puts.filter(p => !p.closed);
+            const stage = determineStage(totalShares, openCalls, openPuts);
             document.getElementById('current-stage').textContent = stage.stage;
             document.getElementById('decision-node').textContent = stage.node;
 
+            // 更新未平倉持倉顯示
+            updatePositions(totalShares, avgCost, openCalls, openPuts);
+
+            // 計算損益
+            updatePnL();
+
             // 生成任務清單
-            generateTasks(totalShares, avgCost, dashboardData.calls, dashboardData.puts);
+            generateTasks(totalShares, avgCost, openCalls, openPuts);
 
             // 更新操作歷史
             updateHistory();
         }
 
-        // 判斷當前階段
+        // 更新未平倉持倉顯示
+        function updatePositions(shares, avgCost, openCalls, openPuts) {
+            // 股票持倉
+            const stockDiv = document.getElementById('stock-positions');
+            if (shares > 0) {
+                stockDiv.innerHTML = `
+                    <div style="padding: 10px; background: #e3f2fd; border-radius: 6px; margin-bottom: 5px;">
+                        <strong>${shares} 股</strong><br>
+                        <span style="font-size: 0.9em; color: #666;">平均成本: $${avgCost}</span>
+                    </div>
+                `;
+            } else {
+                stockDiv.innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無股票持倉</p>';
+            }
+
+            // Call持倉
+            const callDiv = document.getElementById('call-positions');
+            if (openCalls.length > 0) {
+                callDiv.innerHTML = openCalls.map(call => {
+                    const key = `${call.strike}_${call.expiry}`;
+                    const currentPrice = currentPrices.calls[key] || call.premium;
+                    const pnl = (call.premium - currentPrice).toFixed(2);
+                    const pnlColor = pnl >= 0 ? '#4caf50' : '#f44336';
+                    return `
+                        <div style="padding: 10px; background: #fff3e0; border-radius: 6px; margin-bottom: 5px;">
+                            <strong>$${call.strike} Call</strong><br>
+                            <span style="font-size: 0.85em;">賣出: $${call.premium.toFixed(2)}</span><br>
+                            <span style="font-size: 0.85em;">即時: $<input type="number" value="${currentPrice}" step="0.01" onchange="updateCallPrice('${key}', this.value)" style="width: 60px; padding: 2px; border: 1px solid #ddd; border-radius: 3px;"></span><br>
+                            <span style="font-size: 0.85em; color: ${pnlColor}; font-weight: bold;">損益: $${pnl}</span><br>
+                            <span style="font-size: 0.8em; color: #999;">到期: ${call.expiry}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                callDiv.innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無Call持倉</p>';
+            }
+
+            // Put持倉
+            const putDiv = document.getElementById('put-positions');
+            if (openPuts.length > 0) {
+                putDiv.innerHTML = openPuts.map(put => {
+                    const key = `${put.strike}_${put.expiry}`;
+                    const currentPrice = currentPrices.puts[key] || put.premium;
+                    const pnl = (put.premium - currentPrice).toFixed(2);
+                    const pnlColor = pnl >= 0 ? '#4caf50' : '#f44336';
+                    return `
+                        <div style="padding: 10px; background: #ffebee; border-radius: 6px; margin-bottom: 5px;">
+                            <strong>$${put.strike} Put</strong><br>
+                            <span style="font-size: 0.85em;">賣出: $${put.premium.toFixed(2)}</span><br>
+                            <span style="font-size: 0.85em;">即時: $<input type="number" value="${currentPrice}" step="0.01" onchange="updatePutPrice('${key}', this.value)" style="width: 60px; padding: 2px; border: 1px solid #ddd; border-radius: 3px;"></span><br>
+                            <span style="font-size: 0.85em; color: ${pnlColor}; font-weight: bold;">損益: $${pnl}</span><br>
+                            <span style="font-size: 0.8em; color: #999;">到期: ${put.expiry}</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                putDiv.innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無Put持倉</p>';
+            }
+        }
+
+        // 更新Call價格
+        function updateCallPrice(key, price) {
+            currentPrices.calls[key] = parseFloat(price);
+            updatePnL();
+            updateDisplay();
+        }
+
+        // 更新Put價格
+        function updatePutPrice(key, price) {
+            currentPrices.puts[key] = parseFloat(price);
+            updatePnL();
+            updateDisplay();
+        }
+
+        // 計算損益
+        function updatePnL() {
+            let realizedPnL = 0;
+            let unrealizedPnL = 0;
+
+            // 計算已實現損益（已平倉的操作）
+            // 股票已實現損益
+            let buyQueue = [];
+            dashboardData.operations.forEach(op => {
+                if (op.type === 'buy') {
+                    buyQueue.push({shares: op.shares, price: op.price});
+                } else if (op.type === 'sell') {
+                    let remaining = op.shares;
+                    while (remaining > 0 && buyQueue.length > 0) {
+                        if (buyQueue[0].shares <= remaining) {
+                            realizedPnL += buyQueue[0].shares * (op.price - buyQueue[0].price);
+                            remaining -= buyQueue[0].shares;
+                            buyQueue.shift();
+                        } else {
+                            realizedPnL += remaining * (op.price - buyQueue[0].price);
+                            buyQueue[0].shares -= remaining;
+                            remaining = 0;
+                        }
+                    }
+                }
+            });
+
+            // Call已實現損益
+            dashboardData.calls.forEach(call => {
+                if (call.closed && call.closePrice !== undefined) {
+                    realizedPnL += (call.premium - call.closePrice) * 100; // 每口100股
+                }
+            });
+
+            // Put已實現損益
+            dashboardData.puts.forEach(put => {
+                if (put.closed && put.closePrice !== undefined) {
+                    realizedPnL += (put.premium - put.closePrice) * 100; // 每口100股
+                }
+            });
+
+            // 計算未實現損益
+            // 股票未實現損益
+            const currentStockPrice = parseFloat(document.getElementById('current-stock-price').value) || 0;
+            if (currentStockPrice > 0) {
+                const totalShares = parseInt(document.getElementById('total-shares').textContent) || 0;
+                const avgCost = parseFloat(document.getElementById('avg-cost').textContent) || 0;
+                if (totalShares > 0) {
+                    unrealizedPnL += (currentStockPrice - avgCost) * totalShares;
+                }
+            }
+
+            // Call未實現損益
+            const openCalls = dashboardData.calls.filter(c => !c.closed);
+            openCalls.forEach(call => {
+                const key = `${call.strike}_${call.expiry}`;
+                const currentPrice = currentPrices.calls[key] || call.premium;
+                unrealizedPnL += (call.premium - currentPrice) * 100; // 每口100股
+            });
+
+            // Put未實現損益
+            const openPuts = dashboardData.puts.filter(p => !p.closed);
+            openPuts.forEach(put => {
+                const key = `${put.strike}_${put.expiry}`;
+                const currentPrice = currentPrices.puts[key] || put.premium;
+                unrealizedPnL += (put.premium - currentPrice) * 100; // 每口100股
+            });
+
+            // 更新顯示
+            const realizedColor = realizedPnL >= 0 ? '#4caf50' : '#f44336';
+            const unrealizedColor = unrealizedPnL >= 0 ? '#4caf50' : '#f44336';
+            
+            document.getElementById('realized-pnl').textContent = `$${realizedPnL.toFixed(2)}`;
+            document.getElementById('realized-pnl').style.color = realizedColor;
+            
+            document.getElementById('unrealized-pnl').textContent = `$${unrealizedPnL.toFixed(2)}`;
+            document.getElementById('unrealized-pnl').style.color = unrealizedColor;
+        }
+
+        // 判斷當前階段（使用未平倉的calls和puts）
         function determineStage(shares, calls, puts) {
             if (shares === 0) {
                 return { stage: '未開始', node: '等待初始建倉' };
@@ -812,7 +1228,7 @@ flowchart TD
             };
         }
 
-        // 生成任務清單
+        // 生成任務清單（使用未平倉的calls和puts）
         function generateTasks(shares, avgCost, calls, puts) {
             const taskList = document.getElementById('task-list');
             const tasks = [];
@@ -862,27 +1278,46 @@ flowchart TD
 
             dashboardData.operations.forEach(op => {
                 allOps.push({
-                    type: '買入',
+                    type: op.type === 'buy' ? '買入' : '賣出',
                     desc: `${op.shares}股 @ $${op.price.toFixed(2)}`,
                     date: op.date
                 });
             });
 
             dashboardData.calls.forEach(call => {
-                allOps.push({
-                    type: '賣Call',
-                    desc: `$${call.strike.toFixed(2)} Call，權利金 $${call.premium.toFixed(2)}`,
-                    date: call.date
-                });
+                if (call.closed) {
+                    allOps.push({
+                        type: '賣Call（已平倉）',
+                        desc: `$${call.strike.toFixed(2)} Call，賣出 $${call.premium.toFixed(2)}，買回 $${call.closePrice.toFixed(2)}，損益 $${((call.premium - call.closePrice) * 100).toFixed(2)}`,
+                        date: call.closeDate
+                    });
+                } else {
+                    allOps.push({
+                        type: '賣Call',
+                        desc: `$${call.strike.toFixed(2)} Call，權利金 $${call.premium.toFixed(2)}`,
+                        date: call.date
+                    });
+                }
             });
 
             dashboardData.puts.forEach(put => {
-                allOps.push({
-                    type: '賣Put',
-                    desc: `$${put.strike.toFixed(2)} Put，權利金 $${put.premium.toFixed(2)}`,
-                    date: put.date
-                });
+                if (put.closed) {
+                    allOps.push({
+                        type: '賣Put（已平倉）',
+                        desc: `$${put.strike.toFixed(2)} Put，賣出 $${put.premium.toFixed(2)}，買回 $${put.closePrice.toFixed(2)}，損益 $${((put.premium - put.closePrice) * 100).toFixed(2)}`,
+                        date: put.closeDate
+                    });
+                } else {
+                    allOps.push({
+                        type: '賣Put',
+                        desc: `$${put.strike.toFixed(2)} Put，權利金 $${put.premium.toFixed(2)}`,
+                        date: put.date
+                    });
+                }
             });
+
+            // 按日期排序（最新的在前）
+            allOps.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             if (allOps.length === 0) {
                 historyDiv.innerHTML = '<p style="color: #999; font-style: italic;">尚無操作記錄</p>';
@@ -912,6 +1347,35 @@ flowchart TD
 
             // 定期更新顯示（每30秒）
             setInterval(updateDisplay, 30000);
+            
+            // 載入保存的價格
+            const savedPrices = localStorage.getItem('tradingPrices');
+            if (savedPrices) {
+                currentPrices = JSON.parse(savedPrices);
+                if (currentPrices.stock) {
+                    document.getElementById('current-stock-price').value = currentPrices.stock;
+                }
+            }
+        });
+
+        // 保存價格到localStorage
+        function savePrices() {
+            const stockPrice = parseFloat(document.getElementById('current-stock-price').value) || 0;
+            if (stockPrice > 0) {
+                currentPrices.stock = stockPrice;
+            }
+            localStorage.setItem('tradingPrices', JSON.stringify(currentPrices));
+        }
+
+        // 當股價改變時保存
+        document.addEventListener('DOMContentLoaded', function() {
+            const stockPriceInput = document.getElementById('current-stock-price');
+            if (stockPriceInput) {
+                stockPriceInput.addEventListener('blur', function() {
+                    savePrices();
+                    updatePnL();
+                });
+            }
         });
     </script>
 </body>
