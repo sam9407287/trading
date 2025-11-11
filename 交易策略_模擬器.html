@@ -1018,6 +1018,16 @@
                 return;
             }
 
+            // 檢查可用資金是否足夠
+            const requiredCash = shares * price;
+            const availableCash = calculateAvailableCash();
+            
+            if (availableCash < requiredCash) {
+                const shortage = requiredCash - availableCash;
+                alert(`超過可用資金上限！\n需要資金：$${requiredCash.toFixed(2)}\n可用資金：$${availableCash.toFixed(2)}\n不足金額：$${shortage.toFixed(2)}\n\n請添加資金後再進行買入操作。`);
+                return;
+            }
+
             const operation = {
                 type: 'buy',
                 shares: shares,
@@ -1150,11 +1160,6 @@
                 return;
             }
 
-            const operationData = {strike, premium, expiry, symbol: currentStock};
-
-            // 保存快照
-            saveOperationSnapshot('buyCall', operationData);
-
             // 尋找匹配的賣Call來平倉
             const matchingCall = stockData.calls.find(c => 
                 !c.closed && 
@@ -1162,6 +1167,23 @@
                 Math.abs(c.strike - strike) < 0.01 && 
                 c.expiry === expiry
             );
+
+            // 如果沒有匹配的，這是新的開倉，需要檢查資金
+            if (!matchingCall) {
+                const requiredCash = premium * 100; // 每口100股
+                const availableCash = calculateAvailableCash();
+                
+                if (availableCash < requiredCash) {
+                    const shortage = requiredCash - availableCash;
+                    alert(`超過可用資金上限！\n需要資金：$${requiredCash.toFixed(2)}\n可用資金：$${availableCash.toFixed(2)}\n不足金額：$${shortage.toFixed(2)}\n\n請添加資金後再進行買入Call操作。`);
+                    return;
+                }
+            }
+
+            const operationData = {strike, premium, expiry, symbol: currentStock};
+
+            // 保存快照
+            saveOperationSnapshot('buyCall', operationData);
 
             if (matchingCall) {
                 matchingCall.closed = true;
@@ -1256,11 +1278,6 @@
                 return;
             }
 
-            const operationData = {strike, premium, expiry, symbol: currentStock};
-
-            // 保存快照
-            saveOperationSnapshot('buyPut', operationData);
-
             // 尋找匹配的賣Put來平倉
             const matchingPut = stockData.puts.find(p => 
                 !p.closed && 
@@ -1268,6 +1285,23 @@
                 Math.abs(p.strike - strike) < 0.01 && 
                 p.expiry === expiry
             );
+
+            // 如果沒有匹配的，這是新的開倉，需要檢查資金
+            if (!matchingPut) {
+                const requiredCash = premium * 100; // 每口100股
+                const availableCash = calculateAvailableCash();
+                
+                if (availableCash < requiredCash) {
+                    const shortage = requiredCash - availableCash;
+                    alert(`超過可用資金上限！\n需要資金：$${requiredCash.toFixed(2)}\n可用資金：$${availableCash.toFixed(2)}\n不足金額：$${shortage.toFixed(2)}\n\n請添加資金後再進行買入Put操作。`);
+                    return;
+                }
+            }
+
+            const operationData = {strike, premium, expiry, symbol: currentStock};
+
+            // 保存快照
+            saveOperationSnapshot('buyPut', operationData);
 
             if (matchingPut) {
                 matchingPut.closed = true;
@@ -1771,6 +1805,65 @@
             } else {
                 alert('請輸入有效的價格');
             }
+        }
+        
+        // 計算當前可用資金（返回數值，用於驗證）
+        function calculateAvailableCash() {
+            if (!dashboardData.stocks) {
+                dashboardData.stocks = {};
+            }
+            
+            // 計算所有添加的資金
+            let totalCash = 0;
+            if (dashboardData.capitalAdditions && dashboardData.capitalAdditions.length > 0) {
+                totalCash = dashboardData.capitalAdditions.reduce((sum, addition) => sum + addition.amount, 0);
+            }
+            
+            // 計算所有股票的現金流
+            Object.keys(dashboardData.stocks).forEach(symbol => {
+                const stock = dashboardData.stocks[symbol];
+                
+                // 股票買賣現金流
+                stock.operations.forEach(op => {
+                    if (op.type === 'buy') {
+                        totalCash -= op.shares * op.price;
+                    } else if (op.type === 'sell') {
+                        totalCash += op.shares * op.price;
+                    }
+                });
+                
+                // 期權權利金（賣出時收到權利金，買回時支付）
+                stock.calls.forEach(call => {
+                    if (!call.closed && !call.exercised) {
+                        // 未平倉的賣Call，已收到權利金
+                        totalCash += call.premium * 100;
+                    } else if (call.closed) {
+                        // 已平倉，計算淨損益
+                        totalCash += (call.premium - call.closePrice) * 100;
+                    }
+                });
+                
+                stock.puts.forEach(put => {
+                    if (!put.closed && !put.exercised) {
+                        // 未平倉的賣Put，已收到權利金
+                        totalCash += put.premium * 100;
+                    } else if (put.closed) {
+                        // 已平倉，計算淨損益
+                        totalCash += (put.premium - put.closePrice) * 100;
+                    }
+                });
+                
+                // 買入的Call/Put（開倉時支付權利金）
+                stock.buyCalls.forEach(buyCall => {
+                    totalCash -= buyCall.premium * 100;
+                });
+                
+                stock.buyPuts.forEach(buyPut => {
+                    totalCash -= buyPut.premium * 100;
+                });
+            });
+            
+            return totalCash;
         }
         
         // 更新可用資金
