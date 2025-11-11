@@ -2129,17 +2129,37 @@
                     }
                 });
 
-                // 計算當前股票持倉和成本
+                // 計算當前股票持倉和成本（支持空頭）
                 let shares = 0;
                 let cost = 0;
                 buyQueue = [];
+                let sellQueue = []; // 用於追蹤空頭
                 stock.operations.forEach(op => {
                     if (op.type === 'buy') {
-                        buyQueue.push({shares: op.shares, price: op.price});
-                        shares += op.shares;
-                        cost += op.shares * op.price;
+                        // 如果有空頭，先平倉
+                        let remaining = op.shares;
+                        while (remaining > 0 && sellQueue.length > 0) {
+                            if (sellQueue[0].shares <= remaining) {
+                                cost -= sellQueue[0].shares * sellQueue[0].price;
+                                shares += sellQueue[0].shares;
+                                remaining -= sellQueue[0].shares;
+                                sellQueue.shift();
+                            } else {
+                                cost -= remaining * sellQueue[0].price;
+                                shares += remaining;
+                                sellQueue[0].shares -= remaining;
+                                remaining = 0;
+                            }
+                        }
+                        // 剩餘的買入加入多頭
+                        if (remaining > 0) {
+                            buyQueue.push({shares: remaining, price: op.price});
+                            shares += remaining;
+                            cost += remaining * op.price;
+                        }
                     } else if (op.type === 'sell') {
                         let remaining = op.shares;
+                        // 先平倉多頭
                         while (remaining > 0 && buyQueue.length > 0) {
                             if (buyQueue[0].shares <= remaining) {
                                 shares -= buyQueue[0].shares;
@@ -2153,17 +2173,36 @@
                                 remaining = 0;
                             }
                         }
+                        // 剩餘的賣出成為空頭
+                        if (remaining > 0) {
+                            sellQueue.push({shares: remaining, price: op.price});
+                            shares -= remaining; // 負數表示空頭
+                            cost += remaining * op.price; // 空頭成本（賣出價格）
+                        }
                     }
                 });
-                const avgCost = shares > 0 ? cost / shares : 0;
+                const avgCost = shares !== 0 ? Math.abs(cost) / Math.abs(shares) : 0;
 
-                // 股票市值（加入總資產）
+                // 股票市值（加入總資產，支持空頭）
                 const stockPrice = currentPrices.stocks[symbol]?.stock || 0;
-                if (stockPrice > 0 && shares > 0) {
-                    totalAssets += stockPrice * shares;
-                    unrealizedPnL += (stockPrice - avgCost) * shares;
-                } else if (shares > 0) {
-                    totalAssets += avgCost * shares; // 如果沒有即時價格，使用成本價
+                if (stockPrice > 0) {
+                    if (shares > 0) {
+                        // 多頭：市值增加
+                        totalAssets += stockPrice * shares;
+                        unrealizedPnL += (stockPrice - avgCost) * shares;
+                    } else if (shares < 0) {
+                        // 空頭：市值減少（負債），總資產 = 現金 - 空頭市值
+                        totalAssets += stockPrice * shares; // shares是負數，所以這裡是減去
+                        // 空頭未實現損益：賣出價 - 當前價（當前價越低，盈利越多）
+                        unrealizedPnL += (avgCost - stockPrice) * Math.abs(shares);
+                    }
+                } else {
+                    // 沒有即時價格
+                    if (shares > 0) {
+                        totalAssets += avgCost * shares; // 多頭使用成本價
+                    } else if (shares < 0) {
+                        totalAssets += avgCost * shares; // 空頭使用賣出價（shares是負數）
+                    }
                 }
 
                 // Call未實現損益和市值（賣出Call：價格下跌是盈利，價格上漲是虧損）
