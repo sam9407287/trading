@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模擬交易 2.0 - 簡化版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 32px;
+        }
+        
+        .back-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #34495e;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #229954; }
+        
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        
+        .btn-warning { background: #f39c12; color: white; }
+        .btn-warning:hover { background: #e67e22; }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            text-align: center;
+        }
+        
+        .status-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .operations-log {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #ecf0f1;
+            border-left: 3px solid #3498db;
+            border-radius: 2px;
+            font-size: 13px;
+            color: #34495e;
+        }
+        
+        .empty-log {
+            color: #95a5a6;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        .holdings {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .holding-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #ecf0f1;
+            border-left: 3px solid #27ae60;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+        
+        .holding-item.short {
+            border-left-color: #e74c3c;
+            background: #ffebee;
+        }
+        
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ 模擬交易 2.0</h1>
+            <a href="交易策略_決策樹.html" class="back-link">← 返回決策樹</a>
+        </div>
+        
+        <div class="main-grid">
+            <!-- 左側：操作區 -->
+            <div>
+                <!-- 用戶信息 -->
+                <div class="section">
+                    <h2>👤 用戶信息</h2>
+                    <div class="form-group">
+                        <label>用戶ID</label>
+                        <input type="text" id="user-id" placeholder="例如: trader123">
+                    </div>
+                    <button class="btn btn-primary" onclick="loginUser()">登入</button>
+                    <button class="btn btn-warning" onclick="logoutUser()">登出</button>
+                </div>
+                
+                <!-- 資金管理 -->
+                <div class="section">
+                    <h2>💰 資金管理</h2>
+                    <div class="form-group">
+                        <label>初始資金</label>
+                        <input type="number" id="initial-capital" placeholder="例如: 10000" step="0.01">
+                    </div>
+                    <button class="btn btn-success" onclick="addCapital()">+ 添加資金</button>
+                </div>
+                
+                <!-- 股票操作 -->
+                <div class="section">
+                    <h2>📈 股票操作</h2>
+                    <div class="form-group">
+                        <label>股票代號</label>
+                        <input type="text" id="stock-symbol" placeholder="例如: AAPL">
+                    </div>
+                    <div class="form-group">
+                        <label>操作類型</label>
+                        <select id="stock-action">
+                            <option value="buy">買進</option>
+                            <option value="sell">賣出</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>股數</label>
+                        <input type="number" id="stock-quantity" placeholder="數量" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>價格</label>
+                        <input type="number" id="stock-price" placeholder="價格" step="0.01" min="0">
+                    </div>
+                    <button class="btn btn-success" onclick="executeStockTrade()">執行股票交易</button>
+                </div>
+                
+                <!-- 期權操作 -->
+                <div class="section">
+                    <h2>📊 期權操作</h2>
+                    <div class="form-group">
+                        <label>期權類型</label>
+                        <select id="option-type">
+                            <option value="call">Call（看漲）</option>
+                            <option value="put">Put（看跌）</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>操作</label>
+                        <select id="option-action">
+                            <option value="buy">買入</option>
+                            <option value="sell">賣出</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>行使價</label>
+                        <input type="number" id="strike-price" placeholder="行使價" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>權利金（每股）</label>
+                        <input type="number" id="premium" placeholder="權利金" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>到期日期</label>
+                        <input type="date" id="expiry-date">
+                    </div>
+                    <button class="btn btn-success" onclick="executeOptionTrade()">執行期權交易</button>
+                </div>
+            </div>
+            
+            <!-- 右側：狀態顯示 -->
+            <div>
+                <!-- 當前狀態 -->
+                <div class="section">
+                    <h2>📊 當前狀態</h2>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-label">可用資金</div>
+                            <div class="status-value" id="available-cash">$0.00</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">總持股</div>
+                            <div class="status-value" id="total-shares">0</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">已實現損益</div>
+                            <div class="status-value" id="realized-pnl">$0.00</div>
+                        </div>
+                    </div>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <div class="status-label">未實現損益</div>
+                            <div class="status-value" id="unrealized-pnl">$0.00</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">總資產價值</div>
+                            <div class="status-value" id="total-assets">$0.00</div>
+                        </div>
+                        <div class="status-item">
+                            <div class="status-label">總損益</div>
+                            <div class="status-value" id="total-pnl">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 持倉總覽 -->
+                <div class="section">
+                    <h2>📌 持倉總覽</h2>
+                    <div class="holdings" id="holdings">
+                        <div class="empty-log">無持倉</div>
+                    </div>
+                </div>
+                
+                <!-- 操作記錄 -->
+                <div class="section">
+                    <h2>📜 操作記錄</h2>
+                    <div class="operations-log" id="log">
+                        <div class="empty-log">尚無操作記錄</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="clearAllData()" style="margin-top: 15px;">🗑️ 清除所有</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 數據存儲
+        let userData = {
+            userId: '',
+            capital: 0,
+            availableCash: 0,
+            trades: [],
+            holdings: {}
+        };
+        
+        // 登入用戶
+        function loginUser() {
+            const userId = document.getElementById('user-id').value.trim();
+            if (!userId) {
+                alert('請輸入用戶ID');
+                return;
+            }
+            userData.userId = userId;
+            loadUserData();
+            alert(`歡迎, ${userId}!`);
+            updateDisplay();
+        }
+        
+        // 登出用戶
+        function logoutUser() {
+            userData.userId = '';
+            alert('已登出');
+            updateDisplay();
+        }
+        
+        // 加載用戶數據
+        function loadUserData() {
+            const key = `trader2.0_${userData.userId}`;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                userData = JSON.parse(saved);
+            }
+        }
+        
+        // 保存用戶數據
+        function saveUserData() {
+            if (!userData.userId) return;
+            const key = `trader2.0_${userData.userId}`;
+            localStorage.setItem(key, JSON.stringify(userData));
+        }
+        
+        // 添加資金
+        function addCapital() {
+            if (!userData.userId) {
+                alert('請先登入');
+                return;
+            }
+            const amount = parseFloat(document.getElementById('initial-capital').value);
+            if (!amount || amount <= 0) {
+                alert('請輸入正確的金額');
+                return;
+            }
+            userData.capital += amount;
+            userData.availableCash += amount;
+            userData.trades.push({
+                type: '添加資金',
+                amount: amount,
+                date: new Date().toLocaleString('zh-TW')
+            });
+            document.getElementById('initial-capital').value = '';
+            saveUserData();
+            updateDisplay();
+        }
+        
+        // 執行股票交易
+        function executeStockTrade() {
+            if (!userData.userId) {
+                alert('請先登入');
+                return;
+            }
+            const symbol = document.getElementById('stock-symbol').value.trim();
+            const action = document.getElementById('stock-action').value;
+            const quantity = parseInt(document.getElementById('stock-quantity').value);
+            const price = parseFloat(document.getElementById('stock-price').value);
+            
+            if (!symbol || !quantity || !price) {
+                alert('請填寫完整信息');
+                return;
+            }
+            
+            if (!userData.holdings[symbol]) {
+                userData.holdings[symbol] = { shares: 0, avgCost: 0, trades: [] };
+            }
+            
+            const holding = userData.holdings[symbol];
+            const tradeValue = quantity * price;
+            
+            if (action === 'buy') {
+                if (userData.availableCash < tradeValue) {
+                    alert(`資金不足！需要 $${tradeValue.toFixed(2)}, 可用 $${userData.availableCash.toFixed(2)}`);
+                    return;
+                }
+                const totalCost = (holding.shares * holding.avgCost) + (quantity * price);
+                holding.shares += quantity;
+                holding.avgCost = totalCost / holding.shares;
+                userData.availableCash -= tradeValue;
+            } else {
+                if (holding.shares < quantity) {
+                    alert(`持股不足！持有 ${holding.shares} 股, 要賣 ${quantity} 股`);
+                    return;
+                }
+                const realizedPnL = (price - holding.avgCost) * quantity;
+                userData.trades.push({
+                    type: '實現損益',
+                    symbol: symbol,
+                    pnl: realizedPnL,
+                    date: new Date().toLocaleString('zh-TW')
+                });
+                holding.shares -= quantity;
+                userData.availableCash += tradeValue;
+            }
+            
+            holding.trades.push({
+                action: action,
+                quantity: quantity,
+                price: price,
+                date: new Date().toLocaleString('zh-TW')
+            });
+            
+            userData.trades.push({
+                type: `${action === 'buy' ? '買進' : '賣出'} ${quantity}股 ${symbol}`,
+                price: price,
+                value: tradeValue,
+                date: new Date().toLocaleString('zh-TW')
+            });
+            
+            document.getElementById('stock-symbol').value = '';
+            document.getElementById('stock-quantity').value = '';
+            document.getElementById('stock-price').value = '';
+            
+            saveUserData();
+            updateDisplay();
+        }
+        
+        // 執行期權交易
+        function executeOptionTrade() {
+            if (!userData.userId) {
+                alert('請先登入');
+                return;
+            }
+            
+            const optionType = document.getElementById('option-type').value;
+            const action = document.getElementById('option-action').value;
+            const strikePrice = parseFloat(document.getElementById('strike-price').value);
+            const premium = parseFloat(document.getElementById('premium').value);
+            const expiryDate = document.getElementById('expiry-date').value;
+            
+            if (!strikePrice || !premium || !expiryDate) {
+                alert('請填寫完整的期權信息');
+                return;
+            }
+            
+            const optionValue = premium * 100; // 每口100股
+            
+            if (action === 'buy') {
+                if (userData.availableCash < optionValue) {
+                    alert(`資金不足！需要 $${optionValue.toFixed(2)}, 可用 $${userData.availableCash.toFixed(2)}`);
+                    return;
+                }
+                userData.availableCash -= optionValue;
+            } else {
+                userData.availableCash += optionValue;
+            }
+            
+            userData.trades.push({
+                type: `${action === 'buy' ? '買入' : '賣出'} ${optionType.toUpperCase()} 期權`,
+                strikePrice: strikePrice,
+                premium: premium,
+                expiryDate: expiryDate,
+                value: optionValue,
+                date: new Date().toLocaleString('zh-TW')
+            });
+            
+            document.getElementById('strike-price').value = '';
+            document.getElementById('premium').value = '';
+            document.getElementById('expiry-date').value = '';
+            
+            saveUserData();
+            updateDisplay();
+        }
+        
+        // 更新顯示
+        function updateDisplay() {
+            if (!userData.userId) {
+                document.getElementById('available-cash').textContent = '（未登入）';
+                document.getElementById('total-shares').textContent = '0';
+                document.getElementById('realized-pnl').textContent = '$0.00';
+                document.getElementById('unrealized-pnl').textContent = '$0.00';
+                document.getElementById('total-assets').textContent = '$0.00';
+                document.getElementById('total-pnl').textContent = '$0.00';
+                document.getElementById('holdings').innerHTML = '<div class="empty-log">未登入</div>';
+                document.getElementById('log').innerHTML = '<div class="empty-log">未登入</div>';
+                return;
+            }
+            
+            // 更新可用資金
+            document.getElementById('available-cash').textContent = `$${userData.availableCash.toFixed(2)}`;
+            
+            // 計算總持股和持倉價值
+            let totalShares = 0;
+            let holdingValue = 0;
+            let unrealizedPnL = 0;
+            
+            for (const symbol in userData.holdings) {
+                const holding = userData.holdings[symbol];
+                totalShares += holding.shares;
+                const value = holding.shares * holding.avgCost;
+                holdingValue += value;
+                // 未實現損益需要實時價格，這裡簡化為0
+            }
+            
+            document.getElementById('total-shares').textContent = totalShares;
+            document.getElementById('unrealized-pnl').textContent = `$${unrealizedPnL.toFixed(2)}`;
+            
+            // 計算已實現損益
+            let realizedPnL = 0;
+            userData.trades.forEach(trade => {
+                if (trade.pnl) realizedPnL += trade.pnl;
+            });
+            document.getElementById('realized-pnl').textContent = `$${realizedPnL.toFixed(2)}`;
+            
+            // 總資產價值
+            const totalAssets = userData.availableCash + holdingValue;
+            document.getElementById('total-assets').textContent = `$${totalAssets.toFixed(2)}`;
+            
+            // 總損益
+            const totalPnL = realizedPnL + unrealizedPnL;
+            document.getElementById('total-pnl').textContent = `$${totalPnL.toFixed(2)}`;
+            
+            // 更新持倉總覽
+            updateHoldingsDisplay();
+            
+            // 更新操作記錄
+            updateLogDisplay();
+        }
+        
+        // 更新持倉總覽
+        function updateHoldingsDisplay() {
+            const holdingsDiv = document.getElementById('holdings');
+            const holdings = [];
+            
+            for (const symbol in userData.holdings) {
+                const holding = userData.holdings[symbol];
+                if (holding.shares !== 0) {
+                    holdings.push({
+                        symbol: symbol,
+                        shares: holding.shares,
+                        avgCost: holding.avgCost,
+                        value: holding.shares * holding.avgCost
+                    });
+                }
+            }
+            
+            if (holdings.length === 0) {
+                holdingsDiv.innerHTML = '<div class="empty-log">無持倉</div>';
+                return;
+            }
+            
+            let html = '';
+            holdings.forEach(h => {
+                const isShort = h.shares < 0;
+                html += `
+                    <div class="holding-item ${isShort ? 'short' : ''}">
+                        <div>
+                            <strong>${h.symbol}</strong><br>
+                            ${h.shares > 0 ? '多頭' : '空頭'}: ${h.shares} 股 @ $${h.avgCost.toFixed(2)}
+                        </div>
+                        <div style="text-align: right;">
+                            $${h.value.toFixed(2)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            holdingsDiv.innerHTML = html;
+        }
+        
+        // 更新操作記錄
+        function updateLogDisplay() {
+            const logDiv = document.getElementById('log');
+            if (userData.trades.length === 0) {
+                logDiv.innerHTML = '<div class="empty-log">尚無操作記錄</div>';
+                return;
+            }
+            
+            let html = '';
+            [...userData.trades].reverse().forEach(trade => {
+                html += `
+                    <div class="log-item">
+                        <strong>${trade.type}</strong><br>
+                        ${trade.date}
+                    </div>
+                `;
+            });
+            
+            logDiv.innerHTML = html;
+        }
+        
+        // 清除所有數據
+        function clearAllData() {
+            if (!userData.userId) {
+                alert('請先登入');
+                return;
+            }
+            if (confirm('確定要清除所有數據嗎？此操作無法撤銷！')) {
+                userData.capital = 0;
+                userData.availableCash = 0;
+                userData.trades = [];
+                userData.holdings = {};
+                saveUserData();
+                updateDisplay();
+                alert('已清除所有數據');
+            }
+        }
+        
+        // 頁面加載時更新顯示
+        window.addEventListener('load', updateDisplay);
+    </script>
+</body>
+</html>
+
