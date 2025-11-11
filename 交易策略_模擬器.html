@@ -162,7 +162,7 @@
             padding: 20px;
             border-radius: 8px;
             border: 1px solid #e9ecef;
-            max-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
         }
         
@@ -400,7 +400,8 @@
             availableCash: 0,
             trades: [],
             holdings: {},      // {symbol: {shares, avgCost, trades}} - shares 可以是負值（做空）
-            options: {}        // {key: {type, strikePrice, premium, quantity, expiryDate}}
+            options: {},       // {key: {type, strikePrice, premium, quantity, expiryDate}}
+            holdingPrices: {}  // 追蹤持倉的實時價格 {symbol: price, key: price}
         };
         
         // 登入用戶
@@ -719,11 +720,37 @@
             // 計算總持股和持倉價值
             let totalShares = 0;
             let holdingValue = 0;
+            let unrealizedPnL = 0;
             
+            // 計算股票部分
             for (const symbol in userData.holdings) {
                 const holding = userData.holdings[symbol];
                 totalShares += holding.shares;
-                holdingValue += holding.shares * holding.avgCost;
+                
+                // 使用實時價格或平均成本
+                const currentPrice = userData.holdingPrices[symbol] !== undefined ? userData.holdingPrices[symbol] : holding.avgCost;
+                holdingValue += holding.shares * currentPrice;
+                
+                // 計算未實現損益
+                if (holding.shares > 0) {
+                    unrealizedPnL += (currentPrice - holding.avgCost) * holding.shares;
+                } else {
+                    unrealizedPnL += (holding.avgCost - currentPrice) * Math.abs(holding.shares);
+                }
+            }
+            
+            // 計算期權部分
+            for (const optionKey in userData.options) {
+                const option = userData.options[optionKey];
+                const currentPrice = userData.holdingPrices[optionKey] !== undefined ? userData.holdingPrices[optionKey] : option.premium;
+                
+                if (option.quantity > 0) {
+                    // 買入期權
+                    unrealizedPnL += (currentPrice - option.premium) * option.quantity * 100;
+                } else {
+                    // 賣出期權
+                    unrealizedPnL += (option.premium - currentPrice) * Math.abs(option.quantity) * 100;
+                }
             }
             
             document.getElementById('total-shares').textContent = totalShares;
@@ -735,11 +762,9 @@
             });
             document.getElementById('realized-pnl').textContent = `$${realizedPnL.toFixed(2)}`;
             
-            // 未實現損益（簡化計算）
-            let unrealizedPnL = 0;
             document.getElementById('unrealized-pnl').textContent = `$${unrealizedPnL.toFixed(2)}`;
             
-            // 總資產價值
+            // 總資產價值 = 可用資金 + 持倉實時價值
             const totalAssets = userData.availableCash + holdingValue;
             document.getElementById('total-assets').textContent = `$${totalAssets.toFixed(2)}`;
             
@@ -784,6 +809,7 @@
                     symbol: `${option.symbol} ${option.type.toUpperCase()} @ $${option.strikePrice}`,
                     shares: option.quantity,
                     premium: option.premium,
+                    expiryDate: option.expiryDate,
                     value: option.premium * Math.abs(option.quantity) * 100,
                     isOption: true,
                     isShort: option.quantity < 0,
@@ -807,10 +833,15 @@
                 const priceDisplayId = `price-display-${idx}`;
                 const pnlId = `pnl-${idx}`;
                 
+                let expiryInfo = '';
+                if (h.isOption) {
+                    expiryInfo = `<br><span style="font-size: 11px; color: #7f8c8d;">行使日期: ${h.expiryDate || '未設定'}</span>`;
+                }
+                
                 html += `
                     <div class="${className}">
                         <div>
-                            <strong>${h.symbol}</strong><br>
+                            <strong>${h.symbol}</strong>${expiryInfo}<br>
                             ${label}: ${h.shares} ${h.isOption ? '份' : '股'} @ $${(Math.abs(h.shares) > 0 ? h.value / Math.abs(h.shares) : 0).toFixed(2)}<br>
                             <div style="margin-top: 8px; font-size: 12px;">
                                 當前價格: <input type="number" id="${inputId}" step="0.01" min="0" placeholder="輸入價格" style="width: 80px; padding: 4px; font-size: 12px;">
@@ -840,6 +871,9 @@
                 alert('請輸入正確的價格');
                 return;
             }
+            
+            // 保存價格到 holdingPrices
+            userData.holdingPrices[key] = currentPrice;
             
             let pnl = 0;
             let label = '';
@@ -875,6 +909,10 @@
             const pnlColor = pnl >= 0 ? '#27ae60' : '#e74c3c';
             pnlDisplay.innerHTML = `未實現損益: <span style="color: ${pnlColor};">${label}$${Math.abs(pnl).toFixed(2)}</span>`;
             pnlDisplay.style.color = pnlColor;
+            
+            // 更新當前狀態
+            saveUserData();
+            updateDisplay();
         }
         
         // 更新操作記錄
