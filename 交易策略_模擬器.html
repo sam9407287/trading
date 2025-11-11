@@ -439,6 +439,12 @@
                     options: loadedData.options || {},
                     holdingPrices: loadedData.holdingPrices || {}
                 };
+            } else {
+                // 新用戶初始化
+                userData.trades = userData.trades || [];
+                userData.holdings = userData.holdings || {};
+                userData.options = userData.options || {};
+                userData.holdingPrices = userData.holdingPrices || {};
             }
         }
         
@@ -728,7 +734,7 @@
             
             // 計算總持股和持倉價值
             let totalShares = 0;
-            let holdingValue = 0;
+            let holdingValue = 0;  // 只包含股票價值，不包含期權
             let unrealizedPnL = 0;
             
             // 計算股票部分（資產價值和損益）
@@ -738,9 +744,10 @@
                 
                 // 使用實時價格或平均成本
                 const currentPrice = userData.holdingPrices[symbol] !== undefined ? userData.holdingPrices[symbol] : holding.avgCost;
-                holdingValue += holding.shares * currentPrice;
+                const stockValue = holding.shares * currentPrice;
+                holdingValue += stockValue;
                 
-                // 計算未實現損益
+                // 計算股票未實現損益
                 if (holding.shares > 0) {
                     unrealizedPnL += (currentPrice - holding.avgCost) * holding.shares;
                 } else {
@@ -748,12 +755,13 @@
                 }
             }
             
-            // 計算期權部分 - 資產總價值中不包括期權本身，只在有實時價格更新時才計算損益
+            // 計算期權部分損益 - 期權不被計入資產價值，只在有實時價格更新時才計算損益
+            // 期權權利金在買入時已從可用資金扣除，或在賣出時已增加到可用資金
             for (const optionKey in userData.options) {
                 const option = userData.options[optionKey];
                 const currentPrice = userData.holdingPrices[optionKey];
                 
-                // 只有當實時價格被更新時，才計算未實現損益
+                // 只有當實時價格被更新時，才計算期權未實現損益
                 if (currentPrice !== undefined) {
                     if (option.quantity > 0) {
                         // 買入期權 - 當前價格越高越虧
