@@ -257,9 +257,9 @@
                     <h3 style="color: #2c3e50; margin-bottom: 15px;">📝 輸入持倉與操作</h3>
                     
                     <div style="margin-bottom: 15px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">初始資金</label>
-                        <input type="number" id="initial-capital" placeholder="例如: 10000" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <button onclick="setInitialCapital()" style="width: 100%; margin-top: 5px; padding: 8px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💰 設定初始資金</button>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 500;">添加資金</label>
+                        <input type="number" id="add-capital" placeholder="例如: 1000" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <button onclick="addCapital()" style="width: 100%; margin-top: 5px; padding: 8px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💰 添加資金</button>
                     </div>
                     
                     <div style="margin-bottom: 15px;">
@@ -771,7 +771,7 @@ flowchart TD
 
         // 儀表板數據存儲 - 支持多股票
         let dashboardData = {
-            initialCapital: 0,
+            capitalAdditions: [],  // [{amount: 1000, date: '2025/01/01'}]
             stocks: {}  // {symbol: {operations: [], calls: [], puts: [], buyCalls: [], buyPuts: []}}
         };
         
@@ -791,9 +791,21 @@ flowchart TD
                     if (!dashboardData.stocks) {
                         dashboardData.stocks = {};
                     }
-                    if (loaded.initialCapital) {
-                        document.getElementById('initial-capital').value = loaded.initialCapital;
+                    if (!dashboardData.capitalAdditions) {
+                        dashboardData.capitalAdditions = [];
                     }
+                    
+                    // 數據遷移：如果有舊的initialCapital，轉換為capitalAdditions
+                    if (loaded.initialCapital && loaded.initialCapital > 0 && dashboardData.capitalAdditions.length === 0) {
+                        dashboardData.capitalAdditions.push({
+                            amount: loaded.initialCapital,
+                            date: new Date().toLocaleDateString('zh-TW'),
+                            id: Date.now()
+                        });
+                        delete dashboardData.initialCapital;
+                        saveData(); // 保存遷移後的數據
+                    }
+                    
                     updateStockSelect();
                     if (Object.keys(dashboardData.stocks).length > 0) {
                         currentStock = Object.keys(dashboardData.stocks)[0];
@@ -804,13 +816,13 @@ flowchart TD
                 } catch (e) {
                     console.error('載入數據失敗:', e);
                     dashboardData = {
-                        initialCapital: 0,
+                        capitalAdditions: [],
                         stocks: {}
                     };
                 }
             } else {
                 dashboardData = {
-                    initialCapital: 0,
+                    capitalAdditions: [],
                     stocks: {}
                 };
             }
@@ -864,17 +876,25 @@ flowchart TD
             }
         }
         
-        // 設定初始資金
-        function setInitialCapital() {
-            const capital = parseFloat(document.getElementById('initial-capital').value);
-            if (capital > 0) {
-                dashboardData.initialCapital = capital;
+        // 添加資金
+        function addCapital() {
+            const amount = parseFloat(document.getElementById('add-capital').value);
+            if (amount > 0) {
+                if (!dashboardData.capitalAdditions) {
+                    dashboardData.capitalAdditions = [];
+                }
+                dashboardData.capitalAdditions.push({
+                    amount: amount,
+                    date: new Date().toLocaleDateString('zh-TW'),
+                    id: Date.now()
+                });
+                document.getElementById('add-capital').value = '';
                 updateAvailableCash();
                 updateDisplay();
                 saveData();
-                alert('初始資金已設定！');
+                alert(`已成功添加資金 $${amount.toFixed(2)}！`);
             } else {
-                alert('請輸入有效的初始資金');
+                alert('請輸入有效的金額');
             }
         }
         
@@ -1281,7 +1301,7 @@ flowchart TD
         function clearAll() {
             if (confirm('確定要清除所有數據嗎？')) {
                 dashboardData = {
-                    initialCapital: 0,
+                    capitalAdditions: [],
                     stocks: {}
                 };
                 currentPrices = {
@@ -1290,7 +1310,7 @@ flowchart TD
                 currentStock = '';
                 document.getElementById('stock-symbol').value = '';
                 document.getElementById('current-stock-price').value = '';
-                document.getElementById('initial-capital').value = '';
+                document.getElementById('add-capital').value = '';
                 updateStockSelect();
                 localStorage.removeItem('tradingDashboard');
                 localStorage.removeItem('tradingPrices');
@@ -1381,7 +1401,11 @@ flowchart TD
                 dashboardData.stocks = {};
             }
             
-            let totalCash = dashboardData.initialCapital || 0;
+            // 計算所有添加的資金
+            let totalCash = 0;
+            if (dashboardData.capitalAdditions && dashboardData.capitalAdditions.length > 0) {
+                totalCash = dashboardData.capitalAdditions.reduce((sum, addition) => sum + addition.amount, 0);
+            }
             
             // 計算所有股票的現金流
             Object.keys(dashboardData.stocks).forEach(symbol => {
@@ -1529,7 +1553,12 @@ flowchart TD
         function updatePnL() {
             let totalRealizedPnL = 0;
             let totalUnrealizedPnL = 0;
-            let totalAssets = dashboardData.initialCapital || 0;
+            
+            // 計算所有添加的資金
+            let totalAssets = 0;
+            if (dashboardData.capitalAdditions && dashboardData.capitalAdditions.length > 0) {
+                totalAssets = dashboardData.capitalAdditions.reduce((sum, addition) => sum + addition.amount, 0);
+            }
 
             // 遍歷所有股票
             Object.keys(dashboardData.stocks).forEach(symbol => {
@@ -1869,6 +1898,17 @@ flowchart TD
         function updateHistory() {
             const historyDiv = document.getElementById('operation-history');
             const allOps = [];
+
+            // 添加資金記錄
+            if (dashboardData.capitalAdditions && dashboardData.capitalAdditions.length > 0) {
+                dashboardData.capitalAdditions.forEach(addition => {
+                    allOps.push({
+                        type: '添加資金',
+                        desc: `$${addition.amount.toFixed(2)}`,
+                        date: addition.date
+                    });
+                });
+            }
 
             // 遍歷所有股票的操作
             Object.keys(dashboardData.stocks).forEach(symbol => {
