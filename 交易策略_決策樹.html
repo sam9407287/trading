@@ -398,7 +398,9 @@
                             <select id="exercise-call-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                                 <option value="">選擇被行使的Call</option>
                             </select>
-                            <input type="number" id="exercise-price" placeholder="行使價格" step="0.01" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <select id="exercise-put-select" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                <option value="">選擇被行使的Put</option>
+                            </select>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <button onclick="exerciseCall()" style="padding: 10px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">📞 Call被行使</button>
@@ -452,44 +454,6 @@
                     <h4 style="color: #2c3e50; margin: 20px 0 10px 0;">📋 操作建議與任務清單</h4>
                     <div id="task-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                         <p style="color: #999; font-style: italic;">請輸入持倉數據以生成任務</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 未平倉持倉顯示 -->
-            <div style="margin-top: 20px; background: rgba(255,255,255,0.95); color: #2c3e50; padding: 20px; border-radius: 8px;">
-                <h3 style="color: #2c3e50; margin-bottom: 15px;">📊 未平倉持倉與即時價格</h3>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-                    <!-- 股票持倉 -->
-                    <div>
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">股票持倉</h4>
-                        <div id="stock-positions" style="min-height: 50px;">
-                            <p style="color: #999; font-style: italic; font-size: 0.9em;">無股票持倉</p>
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <label style="display: block; margin-bottom: 5px; font-size: 0.9em; font-weight: 500;">即時股價</label>
-                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 5px;">
-                                <input type="number" id="current-stock-price" placeholder="輸入即時股價" step="0.01" onchange="updatePnL(); savePrices();" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                <button onclick="updateStockPrice()" style="padding: 8px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9em;">更新</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Call持倉 -->
-                    <div>
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Call持倉</h4>
-                        <div id="call-positions" style="min-height: 50px;">
-                            <p style="color: #999; font-style: italic; font-size: 0.9em;">無Call持倉</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Put持倉 -->
-                    <div>
-                        <h4 style="color: #2c3e50; margin-bottom: 10px;">Put持倉</h4>
-                        <div id="put-positions" style="min-height: 50px;">
-                            <p style="color: #999; font-style: italic; font-size: 0.9em;">無Put持倉</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1112,12 +1076,14 @@ flowchart TD
         function updateStockSelect() {
             const select = document.getElementById('stock-select');
             const callSelect = document.getElementById('exercise-call-select');
+            const putSelect = document.getElementById('exercise-put-select');
             const currentValue = select.value;
             
-            if (!select || !callSelect) return;
+            if (!select || !callSelect || !putSelect) return;
             
             select.innerHTML = '<option value="">-- 選擇股票 --</option>';
             callSelect.innerHTML = '<option value="">選擇被行使的Call</option>';
+            putSelect.innerHTML = '<option value="">選擇被行使的Put</option>';
             
             if (!dashboardData.stocks) {
                 dashboardData.stocks = {};
@@ -1138,6 +1104,17 @@ flowchart TD
                         callOption.value = `${symbol}_${call.id}`;
                         callOption.textContent = `${symbol} $${call.strike} Call (${call.expiry})`;
                         callSelect.appendChild(callOption);
+                    });
+                }
+                
+                // 更新Put選擇框
+                if (stock && stock.puts) {
+                    const openPuts = stock.puts.filter(p => !p.closed && !p.exercised);
+                    openPuts.forEach(put => {
+                        const putOption = document.createElement('option');
+                        putOption.value = `${symbol}_${put.id}`;
+                        putOption.textContent = `${symbol} $${put.strike} Put (${put.expiry})`;
+                        putSelect.appendChild(putOption);
                     });
                 }
             });
@@ -1630,16 +1607,10 @@ flowchart TD
                 return;
             }
             
-            if (!currentStock) {
-                alert('請先選擇股票');
-                return;
-            }
-            
             const select = document.getElementById('exercise-call-select');
-            const exercisePrice = parseFloat(document.getElementById('exercise-price').value);
             
-            if (!select.value || !exercisePrice) {
-                alert('請選擇Call並輸入行使價格');
+            if (!select.value) {
+                alert('請選擇被行使的Call');
                 return;
             }
             
@@ -1653,6 +1624,9 @@ flowchart TD
                 return;
             }
             
+            // 使用Call的strike價格作為行使價格
+            const exercisePrice = call.strike;
+            
             // 保存快照
             saveOperationSnapshot('exerciseCall', {symbol, callId, exercisePrice});
             
@@ -1662,6 +1636,8 @@ flowchart TD
             call.exerciseDate = new Date().toLocaleDateString('zh-TW');
             
             // 自動減少股票持倉（100股，因為1口Call = 100股）
+            // 注意：這裡賣出股票收到的錢會增加可用資金，但這是正常的現金流
+            // 資產總值會通過updatePnL()自動計算（現金 + 股票市值）
             stockData.operations.push({
                 type: 'sell',
                 shares: 100,
@@ -1673,7 +1649,7 @@ flowchart TD
             });
             
             alert(`${symbol} $${call.strike} Call已被行使，已自動賣出100股 @ $${call.strike}`);
-            document.getElementById('exercise-price').value = '';
+            select.value = '';
             updateStockSelect();
             updateAvailableCash();
             updateDisplay();
@@ -1687,32 +1663,28 @@ flowchart TD
                 return;
             }
             
-            if (!currentStock) {
-                alert('請先選擇股票');
+            const select = document.getElementById('exercise-put-select');
+            
+            if (!select.value) {
+                alert('請選擇被行使的Put');
                 return;
             }
             
-            const stockData = getCurrentStockData();
-            const strike = parseFloat(prompt('請輸入被行使的Put行權價：'));
-            const exercisePrice = parseFloat(prompt('請輸入行使價格（通常等於行權價）：'));
+            const [symbol, putId] = select.value.split('_');
+            const stockData = dashboardData.stocks[symbol];
+            if (!stockData) return;
             
-            if (!strike || !exercisePrice) {
+            const put = stockData.puts.find(p => p.id == putId);
+            if (!put || put.exercised || put.closed) {
+                alert('該Put已被行使或已平倉');
                 return;
             }
             
-            const put = stockData.puts.find(p => 
-                !p.exercised && 
-                !p.closed && 
-                Math.abs(p.strike - strike) < 0.01
-            );
-            
-            if (!put) {
-                alert('找不到匹配的Put');
-                return;
-            }
+            // 使用Put的strike價格作為行使價格
+            const exercisePrice = put.strike;
             
             // 保存快照
-            saveOperationSnapshot('exercisePut', {strike, exercisePrice, symbol: currentStock});
+            saveOperationSnapshot('exercisePut', {symbol, putId, exercisePrice});
             
             // 標記為已行使
             put.exercised = true;
@@ -1720,35 +1692,26 @@ flowchart TD
             put.exerciseDate = new Date().toLocaleDateString('zh-TW');
             
             // 自動增加股票持倉（100股，因為1口Put = 100股）
+            // 注意：這裡買入股票支付的錢會減少可用資金，但這是正常的現金流
+            // 資產總值會通過updatePnL()自動計算（現金 + 股票市值）
             stockData.operations.push({
                 type: 'buy',
                 shares: 100,
                 price: put.strike,
                 date: new Date().toLocaleDateString('zh-TW'),
                 id: Date.now(),
-                symbol: currentStock,
+                symbol: symbol,
                 reason: `Put被行使 (${put.strike} Put)`
             });
             
-            alert(`${currentStock} $${put.strike} Put已被行使，已自動買入100股 @ $${put.strike}`);
+            alert(`${symbol} $${put.strike} Put已被行使，已自動買入100股 @ $${put.strike}`);
+            select.value = '';
+            updateStockSelect();
             updateAvailableCash();
             updateDisplay();
             saveData();
         }
         
-        // 更新股價
-        function updateStockPrice() {
-            const price = parseFloat(document.getElementById('current-stock-price').value);
-            if (price > 0 && currentStock) {
-                if (!currentPrices.stocks[currentStock]) {
-                    currentPrices.stocks[currentStock] = {stock: 0, calls: {}, puts: {}};
-                }
-                currentPrices.stocks[currentStock].stock = price;
-                savePrices();
-                updatePnL();
-                updateDisplay();
-            }
-        }
 
         // 清除所有數據
         function clearAll() {
@@ -1763,7 +1726,6 @@ flowchart TD
                 currentStock = '';
                 operationHistory = [];
                 document.getElementById('stock-symbol').value = '';
-                document.getElementById('current-stock-price').value = '';
                 document.getElementById('add-capital').value = '';
                 updateStockSelect();
                 
@@ -1787,9 +1749,6 @@ flowchart TD
                 document.getElementById('avg-cost').textContent = '0.00';
                 document.getElementById('current-stage').textContent = '未選擇股票';
                 document.getElementById('decision-node').textContent = '請先選擇或新增股票';
-                document.getElementById('stock-positions').innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無股票持倉</p>';
-                document.getElementById('call-positions').innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無Call持倉</p>';
-                document.getElementById('put-positions').innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無Put持倉</p>';
                 updateAvailableCash();
                 updatePnL();
                 generateTasks(0, 0, [], []);
@@ -1839,9 +1798,6 @@ flowchart TD
             const stage = determineStage(totalShares, openCalls, openPuts);
             document.getElementById('current-stage').textContent = stage.stage;
             document.getElementById('decision-node').textContent = stage.node;
-
-            // 更新未平倉持倉顯示
-            updatePositions(currentStock, totalShares, avgCost, openCalls, openPuts);
 
             // 更新所有持倉總覽
             updateAllPositionsOverview();
@@ -2149,75 +2105,6 @@ flowchart TD
             }
         }
 
-        // 更新未平倉持倉顯示
-        function updatePositions(symbol, shares, avgCost, openCalls, openPuts) {
-            // 股票持倉
-            const stockDiv = document.getElementById('stock-positions');
-            if (shares > 0) {
-                const stockPrice = currentPrices.stocks[symbol]?.stock || 0;
-                stockDiv.innerHTML = `
-                    <div style="padding: 10px; background: #e3f2fd; border-radius: 6px; margin-bottom: 5px;">
-                        <strong>${symbol}: ${shares} 股</strong><br>
-                        <span style="font-size: 0.9em; color: #666;">平均成本: $${avgCost}</span>
-                        ${stockPrice > 0 ? `<br><span style="font-size: 0.9em; color: #666;">即時價格: $${stockPrice.toFixed(2)}</span>` : ''}
-                    </div>
-                `;
-            } else {
-                stockDiv.innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無股票持倉</p>';
-            }
-
-            // Call持倉
-            const callDiv = document.getElementById('call-positions');
-            if (openCalls.length > 0) {
-                callDiv.innerHTML = openCalls.map(call => {
-                    const key = `${symbol}_${call.strike}_${call.expiry}`;
-                    const stockPriceData = currentPrices.stocks[symbol];
-                    const currentPrice = stockPriceData?.calls?.[`${call.strike}_${call.expiry}`] || call.premium;
-                    const pnl = (call.premium - currentPrice).toFixed(2);
-                    const pnlColor = pnl >= 0 ? '#4caf50' : '#f44336';
-                    return `
-                        <div style="padding: 10px; background: #fff3e0; border-radius: 6px; margin-bottom: 5px;">
-                            <strong>${symbol} $${call.strike} Call</strong><br>
-                            <span style="font-size: 0.85em;">賣出: $${call.premium.toFixed(2)}/股</span><br>
-                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 5px; margin-top: 5px;">
-                                <input type="number" id="call-price-${call.id}" value="${currentPrice}" step="0.01" placeholder="即時價（每股）" style="padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-size: 0.85em;">
-                                <button onclick="updateCallPrice('${symbol}', '${call.strike}', '${call.expiry}', document.getElementById('call-price-${call.id}').value)" style="padding: 4px; background: #2196f3; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8em;">更新</button>
-                            </div>
-                            <span style="font-size: 0.85em; color: ${pnlColor}; font-weight: bold;">損益: $${pnl}/股</span><br>
-                            <span style="font-size: 0.8em; color: #999;">到期: ${call.expiry}</span>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                callDiv.innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無Call持倉</p>';
-            }
-
-            // Put持倉
-            const putDiv = document.getElementById('put-positions');
-            if (openPuts.length > 0) {
-                putDiv.innerHTML = openPuts.map(put => {
-                    const key = `${symbol}_${put.strike}_${put.expiry}`;
-                    const stockPriceData = currentPrices.stocks[symbol];
-                    const currentPrice = stockPriceData?.puts?.[`${put.strike}_${put.expiry}`] || put.premium;
-                    const pnl = (put.premium - currentPrice).toFixed(2);
-                    const pnlColor = pnl >= 0 ? '#4caf50' : '#f44336';
-                    return `
-                        <div style="padding: 10px; background: #ffebee; border-radius: 6px; margin-bottom: 5px;">
-                            <strong>${symbol} $${put.strike} Put</strong><br>
-                            <span style="font-size: 0.85em;">賣出: $${put.premium.toFixed(2)}/股</span><br>
-                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 5px; margin-top: 5px;">
-                                <input type="number" id="put-price-${put.id}" value="${currentPrice}" step="0.01" placeholder="即時價（每股）" style="padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-size: 0.85em;">
-                                <button onclick="updatePutPrice('${symbol}', '${put.strike}', '${put.expiry}', document.getElementById('put-price-${put.id}').value)" style="padding: 4px; background: #2196f3; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8em;">更新</button>
-                            </div>
-                            <span style="font-size: 0.85em; color: ${pnlColor}; font-weight: bold;">損益: $${pnl}/股</span><br>
-                            <span style="font-size: 0.8em; color: #999;">到期: ${put.expiry}</span>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                putDiv.innerHTML = '<p style="color: #999; font-style: italic; font-size: 0.9em;">無Put持倉</p>';
-            }
-        }
 
         // 更新Call價格
         function updateCallPrice(symbol, strike, expiry, price) {
@@ -2653,9 +2540,6 @@ flowchart TD
             const savedPrices = localStorage.getItem('tradingPrices');
             if (savedPrices) {
                 currentPrices = JSON.parse(savedPrices);
-                if (currentStock && currentPrices.stocks[currentStock]?.stock) {
-                    document.getElementById('current-stock-price').value = currentPrices.stocks[currentStock].stock;
-                }
             }
             
             // 初始化時更新排行榜
@@ -2664,28 +2548,8 @@ flowchart TD
 
         // 保存價格到localStorage
         function savePrices() {
-            if (currentStock) {
-                const stockPrice = parseFloat(document.getElementById('current-stock-price').value) || 0;
-                if (stockPrice > 0) {
-                    if (!currentPrices.stocks[currentStock]) {
-                        currentPrices.stocks[currentStock] = {stock: 0, calls: {}, puts: {}};
-                    }
-                    currentPrices.stocks[currentStock].stock = stockPrice;
-                }
-            }
             localStorage.setItem('tradingPrices', JSON.stringify(currentPrices));
         }
-
-        // 當股價改變時保存
-        document.addEventListener('DOMContentLoaded', function() {
-            const stockPriceInput = document.getElementById('current-stock-price');
-            if (stockPriceInput) {
-                stockPriceInput.addEventListener('blur', function() {
-                    savePrices();
-                    updatePnL();
-                });
-            }
-        });
     </script>
 </body>
 </html>
