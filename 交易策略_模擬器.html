@@ -770,11 +770,11 @@
                 // 只有當實時價格被更新時，才計算期權未實現損益
                 if (currentPrice !== undefined) {
                     if (option.quantity > 0) {
-                        // 買入期權 - 當前價格越高越虧
-                        unrealizedPnL += (option.premium - currentPrice) * option.quantity * 100;
+                        // 買入期權 - 當前價格越低越賺，越高越虧
+                        unrealizedPnL += (currentPrice - option.premium) * option.quantity * 100;
                     } else {
-                        // 賣出期權 - 當前價格越低越賺
-                        unrealizedPnL += (currentPrice - option.premium) * Math.abs(option.quantity) * 100;
+                        // 賣出期權 - 當前價格越低越賺，越高越虧
+                        unrealizedPnL += (option.premium - currentPrice) * Math.abs(option.quantity) * 100;
                     }
                 }
             }
@@ -919,11 +919,11 @@
             } else if (type === 'option') {
                 const option = userData.options[key];
                 if (option.quantity > 0) {
-                    // 買入期權 - 當前價格越低越虧
+                    // 買入期權 - 當前價格越低越賺，越高越虧
                     pnl = (currentPrice - option.premium) * option.quantity * 100;
                     label = pnl >= 0 ? '+' : '';
                 } else {
-                    // 賣出期權 - 當前價格越低越賺
+                    // 賣出期權 - 當前價格越低越賺，越高越虧
                     pnl = (option.premium - currentPrice) * Math.abs(option.quantity) * 100;
                     label = pnl >= 0 ? '+' : '';
                 }
