@@ -2256,14 +2256,22 @@ flowchart TD
                 // Call已實現損益
                 stock.calls.forEach(call => {
                     if (call.closed && call.closePrice !== undefined) {
+                        // 買回平倉：premium - closePrice
                         realizedPnL += (call.premium - call.closePrice) * 100;
+                    } else if (call.exercised) {
+                        // 被行使：視為以0元買回，賺到全部權利金
+                        realizedPnL += call.premium * 100;
                     }
                 });
 
                 // Put已實現損益
                 stock.puts.forEach(put => {
                     if (put.closed && put.closePrice !== undefined) {
+                        // 買回平倉：premium - closePrice
                         realizedPnL += (put.premium - put.closePrice) * 100;
+                    } else if (put.exercised) {
+                        // 被行使：視為以0元買回，賺到全部權利金
+                        realizedPnL += put.premium * 100;
                     }
                 });
 
